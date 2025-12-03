@@ -1,0 +1,495 @@
+import React, { useEffect, useState } from 'react';
+import { dailyWordsAPI, tasksAPI, todosAPI, visionAPI, healthAPI, goalsAPI } from '../utils/database';
+import { Clock, Target, CheckSquare, Heart, Activity, Sparkles, Edit, Trash2, Plus, ChevronLeft, ChevronRight, Sun, Dumbbell, Coffee, Book, Radiation as Meditation, ShowerHead as Shower, Eye } from 'lucide-react';
+import VisionForm from './VisionForm';
+import GoalForm from './GoalForm';
+
+const DailyPlanner: React.FC = () => {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showVisionPreview, setShowVisionPreview] = useState<number | null>(null);
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
+    setSelectedDate(newDate);
+  };
+
+  // start with empty arrays — actual data is loaded from the API
+  const initialTodaysVisions: any[] = [];
+
+  const initialTodaysGoals: any[] = [];
+
+  // keep section templates but with empty items — no dummy data
+  const sections = [
+    { title: 'Morning Routine', icon: Sun, color: 'from-orange-400 to-yellow-500', bg: 'bg-orange-50', border: 'border-orange-200', items: [] },
+    { title: 'Top 3 Priorities', icon: Target, color: 'from-blue-400 to-cyan-500', bg: 'bg-blue-50', border: 'border-blue-200', items: [] },
+    { title: 'Task List', icon: CheckSquare, color: 'from-green-400 to-emerald-500', bg: 'bg-green-50', border: 'border-green-200', items: [] },
+    { title: "My To-Do's for Today", icon: CheckSquare, color: 'from-purple-400 to-pink-500', bg: 'bg-purple-50', border: 'border-purple-200', items: [] },
+    { title: 'My Word (Integrity)', icon: Heart, color: 'from-red-400 to-pink-500', bg: 'bg-red-50', border: 'border-red-200', items: [] },
+    { title: 'Health Tracker', icon: Activity, color: 'from-green-500 to-teal-500', bg: 'bg-green-50', border: 'border-green-200', items: [] },
+    { title: 'Affirmations', icon: Sparkles, color: 'from-pink-400 to-rose-500', bg: 'bg-pink-50', border: 'border-pink-200', items: [] }
+  ];
+
+  const [visions, setVisions] = useState<any[]>(initialTodaysVisions);
+  const [goals, setGoals] = useState<any[]>(initialTodaysGoals);
+  const [sectionsState, setSectionsState] = useState<any[]>(sections);
+  const [dailyWords, setDailyWords] = useState<any[]>([]);
+
+  // UI state for add/create modals
+  const [showAddVisionModal, setShowAddVisionModal] = useState(false);
+  const [showAddGoalModal, setShowAddGoalModal] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const dateStr = selectedDate.toISOString().slice(0, 10);
+      try {
+        const [vw, allTasks, allTodos, health, allGoals] = await Promise.all([
+          visionAPI.getAll(selectedDate.getFullYear()),
+          tasksAPI.getAll(),
+          todosAPI.getAll(),
+          healthAPI.getAll(dateStr),
+          goalsAPI.getAll(selectedDate.getFullYear())
+        ]);
+
+        // visions may be general; keep them if returned
+        if (Array.isArray(vw) && vw.length) setVisions(vw);
+
+        // filter tasks/todos by date if they include a date field
+        const tasksForDate = Array.isArray(allTasks)
+          ? allTasks.filter((t: any) => t.date === dateStr || !t.date && true)
+          : [];
+        const todosForDate = Array.isArray(allTodos)
+          ? allTodos.filter((t: any) => t.date === dateStr || !t.date && true)
+          : [];
+
+        // Map tasks/todos into sections where appropriate
+        setGoals(tasksForDate.length ? tasksForDate : initialTodaysGoals);
+
+  const newSections = sections.map(section => {
+          if (section.title === 'Task List') return { ...section, items: tasksForDate.length ? tasksForDate : section.items };
+          if (section.title === "My To-Do's for Today") return { ...section, items: todosForDate.length ? todosForDate : section.items };
+          if (section.title === 'Health Tracker') return { ...section, items: health && health.length ? health : section.items };
+          return section;
+        });
+        setSectionsState(newSections);
+
+  const dw = await dailyWordsAPI.getAll(dateStr);
+  if (Array.isArray(dw) && dw.length) setDailyWords(dw);
+  // prefer goals that match the date if present
+  const goalsForDate = Array.isArray(allGoals) ? allGoals.filter((g: any) => g.date === dateStr || !g.date) : [];
+  if (goalsForDate.length) setGoals(goalsForDate);
+      } catch (err) {
+        // keep initial sample data on error
+        console.warn('Failed to load daily planner data, using local samples', err);
+      }
+    };
+
+    load();
+  }, [selectedDate]);
+
+  // Vision/Goal submission handlers (used by VisionForm / GoalForm)
+  const handleVisionSubmit = async (visionData: any) => {
+    try {
+      const dateStr = selectedDate.toISOString().slice(0, 10);
+      const payload = { ...visionData, date: visionData.date || dateStr, year: visionData.year || selectedDate.getFullYear() };
+      const created = await visionAPI.create(payload);
+      setVisions(prev => [created, ...prev]);
+    } catch (err) {
+      console.error('Failed to create vision', err);
+      alert('Could not save vision — see console');
+    } finally {
+      setShowAddVisionModal(false);
+    }
+  };
+
+  const handleGoalSubmit = async (goalData: any) => {
+    try {
+      const dateStr = selectedDate.toISOString().slice(0, 10);
+      const payload = { ...goalData, date: goalData.date || dateStr, year: goalData.year || selectedDate.getFullYear() };
+      const created = await goalsAPI.create(payload);
+      setGoals(prev => [created, ...prev]);
+    } catch (err) {
+      console.error('Failed to create goal', err);
+      alert('Could not save goal — see console');
+    } finally {
+      setShowAddGoalModal(false);
+    }
+  };
+
+  const VisionCard = ({ vision }: { vision: any }) => (
+    <div className={`bg-white rounded-2xl shadow-lg border ${vision.border} p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-102`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className={`p-3 bg-gradient-to-r ${vision.color} rounded-xl shadow-lg`}>
+            <Eye className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-gray-800">{vision.title}</h3>
+            <p className="text-sm text-gray-600">{vision.description}</p>
+          </div>
+        </div>
+        <div className="flex space-x-1">
+          <button 
+            onClick={() => setShowVisionPreview(vision.id)}
+            className="p-2 text-gray-400 hover:text-purple-600 rounded-lg hover:bg-purple-50 transition-all duration-300 transform hover:scale-105"
+            title="Preview Vision"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button className="p-1 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-105">
+            <Edit className="h-3 w-3" />
+          </button>
+          <button className="p-1 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all duration-300 transform hover:scale-105">
+            <Trash2 className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+      
+      <div className="mb-3">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-700">Progress</span>
+          <span className="text-sm font-bold text-gray-800">{vision.progress}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2 shadow-inner">
+          <div 
+            className={`h-2 rounded-full bg-gradient-to-r ${vision.color} transition-all duration-500 shadow-sm`}
+            style={{ width: `${vision.progress}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const GoalCard = ({ goal }: { goal: any }) => (
+    <div className="group flex items-center space-x-4 p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:scale-102">
+      <input
+        type="checkbox"
+        checked={goal.completed}
+        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+      />
+      
+      <div className="flex-1">
+        <p className={`text-sm font-medium ${goal.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+          {goal.text}
+        </p>
+        <div className="flex items-center space-x-3 mt-1">
+          <span className="text-xs text-gray-500">{goal.deadline}</span>
+          <span className="text-xs text-blue-600">{goal.category}</span>
+          <span className={`px-2 py-1 text-xs rounded-full ${
+            goal.priority === 'High' ? 'bg-red-100 text-red-700' :
+            goal.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+            'bg-green-100 text-green-700'
+          }`}>
+            {goal.priority}
+          </span>
+        </div>
+      </div>
+      
+      <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
+        <button className="p-1 text-gray-400 hover:text-blue-600 rounded transition-all duration-300 transform hover:scale-105">
+          <Edit className="h-3 w-3" />
+        </button>
+        <button className="p-1 text-gray-400 hover:text-red-600 rounded transition-all duration-300 transform hover:scale-105">
+          <Trash2 className="h-3 w-3" />
+        </button>
+      </div>
+    </div>
+  );
+
+  const SectionCard = ({ section }: { section: any }) => (
+    <div className={`bg-white rounded-2xl shadow-lg border ${section.border} p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-102`}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className={`p-3 bg-gradient-to-r ${section.color} rounded-xl shadow-lg`}>
+            <section.icon className="h-6 w-6 text-white" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-800">{section.title}</h3>
+        </div>
+        <button className="p-2 text-gray-400 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-105">
+          <Plus className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {section.items.map((item: any) => (
+          <div key={item.id} className={`group flex items-center space-x-4 p-4 ${section.bg} rounded-xl ${section.border} border hover:shadow-md transition-all duration-300 transform hover:scale-102`}>
+            <input
+              type="checkbox"
+              checked={item.completed}
+              className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 shadow-sm"
+            />
+            
+            <div className={`p-2 bg-white rounded-lg shadow-sm ${item.iconColor}`}>
+              <item.icon className="h-5 w-5" />
+            </div>
+            
+            <div className="flex-1">
+              <p className={`text-sm font-medium ${item.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                {item.text}
+              </p>
+              {item.time && (
+                <p className="text-xs text-gray-500 mt-1 font-medium">{item.time}</p>
+              )}
+              {item.current && (
+                <p className="text-xs text-blue-600 mt-1 font-semibold">{item.current}</p>
+              )}
+              {item.priority && (
+                <span className={`inline-block px-3 py-1 text-xs rounded-full mt-2 font-medium ${
+                  item.priority === 'High' ? 'bg-red-100 text-red-700' :
+                  item.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-green-100 text-green-700'
+                }`}>
+                  {item.priority}
+                </span>
+              )}
+            </div>
+            <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
+              <button className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-105">
+                <Edit className="h-4 w-4" />
+              </button>
+              <button className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all duration-300 transform hover:scale-105">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const selectedVision = visions.find(v => v.id === showVisionPreview);
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* Header with Date Navigation */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-xl">
+          <h1 className="text-4xl font-bold mb-2">Daily Planner</h1>
+          <p className="text-blue-100 text-lg">{formatDate(selectedDate)}</p>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigateDate('prev')}
+            className="p-3 text-gray-600 hover:text-gray-800 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-102"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          
+          <button
+            onClick={() => setSelectedDate(new Date())}
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-102 font-semibold"
+          >
+            Today
+          </button>
+          
+          <button
+            onClick={() => navigateDate('next')}
+            className="p-3 text-gray-600 hover:text-gray-800 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-102"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* Today's Visions */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Today's Visions</h2>
+          <button onClick={() => setShowAddVisionModal(true)} className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-102">
+            <Plus className="h-4 w-4" />
+            <span>Add Vision</span>
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {visions.map(vision => (
+            <VisionCard key={vision.id} vision={vision} />
+          ))}
+        </div>
+      </div>
+
+      {/* Today's Goals */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Today's Goals</h2>
+          <button onClick={() => setShowAddGoalModal(true)} className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-102">
+            <Plus className="h-4 w-4" />
+            <span>Add Goal</span>
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {goals.map(goal => (
+            <GoalCard key={goal.id} goal={goal} />
+          ))}
+        </div>
+      </div>
+
+      {/* Sections Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {sectionsState.map((section, index) => (
+          <SectionCard key={index} section={section} />
+        ))}
+      </div>
+
+      {/* Notes/Reflection Section */}
+      <div className="bg-white rounded-2xl shadow-lg border border-indigo-200 p-8 hover:shadow-xl transition-all duration-300">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+              <Book className="h-6 w-6 text-white" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-800">Notes & Reflection</h3>
+          </div>
+          <button className="p-2 text-gray-400 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-105">
+            <Edit className="h-5 w-5" />
+          </button>
+        </div>
+        <textarea
+          placeholder="Write your thoughts, reflections, or notes for today..."
+          className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none bg-indigo-50 text-gray-900 placeholder-gray-500 shadow-inner"
+        />
+      </div>
+
+      {/* Vision Preview Modal */}
+      {/* Add Vision Modal (VisionForm) */}
+      {showAddVisionModal && (
+        <VisionForm
+          onCancel={() => setShowAddVisionModal(false)}
+          onSubmit={handleVisionSubmit}
+        />
+      )}
+
+      {/* Add Goal Modal (GoalForm) */}
+      {showAddGoalModal && (
+        <GoalForm
+          onCancel={() => setShowAddGoalModal(false)}
+          onSubmit={handleGoalSubmit}
+        />
+      )}
+      {showVisionPreview && selectedVision && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 bg-gradient-to-r ${selectedVision.color} rounded-xl shadow-lg`}>
+                  <Eye className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">{selectedVision.title}</h2>
+                  <p className="text-gray-600 mt-1">{selectedVision.headline}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button className="p-2 text-gray-400 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-110">
+                  <Edit className="h-5 w-5" />
+                </button>
+                <button className="p-2 text-gray-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-all duration-300 transform hover:scale-110">
+                  <Trash2 className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() => setShowVisionPreview(null)}
+                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {/* Vision Image */}
+              <div className="mb-6">
+                <img 
+                  src={selectedVision.image} 
+                  alt={selectedVision.title}
+                  className="w-full h-64 object-cover rounded-xl shadow-lg"
+                />
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-lg font-semibold text-gray-700">Overall Progress</span>
+                  <span className="text-2xl font-bold text-gray-800">{selectedVision.progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+                  <div 
+                    className={`h-4 rounded-full bg-gradient-to-r ${selectedVision.color} transition-all duration-500 shadow-sm`}
+                    style={{ width: `${selectedVision.progress}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Vision Details Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Description */}
+                <div className={`p-6 ${selectedVision.bg} rounded-xl border ${selectedVision.border}`}>
+                  <h4 className="text-lg font-bold text-gray-800 mb-3">Description</h4>
+                  <p className="text-gray-700 leading-relaxed">{selectedVision.fullDescription}</p>
+                </div>
+
+                {/* Vision Details */}
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Clock className="h-5 w-5 text-blue-600" />
+                      <span className="font-semibold text-gray-800">Estimated Time</span>
+                    </div>
+                    <p className="text-gray-700">{selectedVision.estimatedTime}</p>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Target className="h-5 w-5 text-green-600" />
+                      <span className="font-semibold text-gray-800">Investment</span>
+                    </div>
+                    <p className="text-gray-700">{selectedVision.estimatedMoney}</p>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Target className="h-5 w-5 text-red-600" />
+                      <span className="font-semibold text-gray-800">Priority</span>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedVision.priority === 'High' ? 'bg-red-100 text-red-700' :
+                      selectedVision.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {selectedVision.priority}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Guidelines */}
+              <div className={`p-6 ${selectedVision.bg} rounded-xl border ${selectedVision.border}`}>
+                <h4 className="text-lg font-bold text-gray-800 mb-4">Guidelines & Action Steps</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedVision.guidelines.map((guideline: string, index: number) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200">
+                      <div className={`p-2 bg-gradient-to-r ${selectedVision.color} rounded-lg`}>
+                        <CheckSquare className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">{guideline}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DailyPlanner;
