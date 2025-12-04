@@ -25,6 +25,54 @@ async function readWorkshops() {
   try {
     const filePath = getWorkshopsFilePath();
     console.log('Reading workshops from:', filePath);
+    
+    // Check if file exists
+    try {
+      await fs.access(filePath);
+    } catch {
+      console.log('File does not exist, creating default data...');
+      const defaultData = {
+        workshops: [
+          {
+            id: '1733417400000',
+            title: 'TEST WORKSHOP - Data Persistence Test',
+            instructor: 'Test Admin',
+            startDate: '2025-12-10',
+            endDate: '2025-12-15',
+            duration: '5 Days',
+            startTime: '09:00',
+            endTime: '17:00',
+            priceINR: 999,
+            priceNPR: 1600,
+            priceUSD: 12,
+            maxParticipants: 20,
+            category: 'Test Category',
+            mode: 'Online',
+            language: 'English',
+            level: 'All Levels',
+            location: 'Test Location',
+            image: 'https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg',
+            youtubeId: 'test',
+            paymentLinkINR: 'https://example.com/pay',
+            paymentLinkNPR: 'https://example.com/pay',
+            paymentLinkUSD: 'https://example.com/pay',
+            whatsappGroupLink: 'https://chat.whatsapp.com/test',
+            prerequisites: 'None',
+            learningOutcomes: 'Test learning outcomes',
+            includedItems: 'Test materials',
+            remarks: 'This is a test workshop to verify data persistence',
+            isPublic: true,
+            enrolledCount: 0,
+            rating: 4.5,
+            created_at: '2025-12-05T12:30:00.000Z',
+            updated_at: '2025-12-05T12:30:00.000Z'
+          }
+        ]
+      };
+      await fs.writeFile(filePath, JSON.stringify(defaultData, null, 2), 'utf-8');
+      console.log('Default data created at:', filePath);
+    }
+    
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const data = JSON.parse(fileContent);
     console.log('Successfully read', data.workshops?.length || 0, 'workshops');
