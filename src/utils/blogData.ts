@@ -77,7 +77,7 @@ const defaultBlogPosts: BlogPost[] = [
 export const blogAPI = {
   async getAll(): Promise<BlogPost[]> {
     try {
-      const response = await fetch('http://localhost:4000/api/blog-posts');
+      const response = await fetch('https://swar-yoga-dec.onrender.com/api/blog-posts');
       if (!response.ok) throw new Error('Failed to fetch blog posts');
       const data = await response.json();
       return Array.isArray(data) ? data : data.data || defaultBlogPosts;
@@ -89,7 +89,7 @@ export const blogAPI = {
 
   async create(post: Omit<BlogPost, 'id'>): Promise<BlogPost> {
     try {
-      const response = await fetch('http://localhost:4000/api/blog-posts', {
+      const response = await fetch('https://swar-yoga-dec.onrender.com/api/blog-posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(post)
@@ -104,7 +104,7 @@ export const blogAPI = {
 
   async update(id: string, post: Partial<BlogPost>): Promise<BlogPost> {
     try {
-      const response = await fetch(`http://localhost:4000/api/blog-posts/${id}`, {
+      const response = await fetch(`https://swar-yoga-dec.onrender.com/api/blog-posts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(post)
@@ -119,7 +119,7 @@ export const blogAPI = {
 
   async delete(id: string): Promise<void> {
     try {
-      const response = await fetch(`http://localhost:4000/api/blog-posts/${id}`, {
+      const response = await fetch(`https://swar-yoga-dec.onrender.com/api/blog-posts/${id}`, {
         method: 'DELETE'
       });
       if (!response.ok) throw new Error('Failed to delete blog post');
