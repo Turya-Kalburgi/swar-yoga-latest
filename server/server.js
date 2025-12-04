@@ -24,8 +24,17 @@ try {
   // If import fails, we silently fall back to JSON-file persistence.
 }
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+
+// Root endpoint for testing
+app.get('/', (req, res) => {
+  res.json({ message: 'Swar Yoga Backend API - Running on Render', timestamp: new Date().toISOString() });
+});
 
 // Workshop Routes - mounted at /api/admin/workshops
 app.use('/api/admin/workshops', workshopRoutes);
@@ -197,4 +206,15 @@ Object.entries(resources).forEach(([route, key]) => {
 app.listen(PORT, () => {
   console.log(`Dev API server running on http://localhost:${PORT}`);
   console.log(`Data file: ${DATA_FILE}`);
+});
+
+// 404 handler for unmatched routes
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found', path: req.path, method: req.method });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal server error', message: err.message });
 });
