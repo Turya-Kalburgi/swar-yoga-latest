@@ -2,18 +2,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "env": {
-    "VITE_API_URL": "@vite_api_url"
-  },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://swar-yoga-dec.onrender.com/api/$1"
-    },
-    {
-      "source": "/:path((?!_next/static).*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/:path*", "destination": "https://swar-yoga-dec.onrender.com/api/:path*" },
+    { "source": "/:path*", "destination": "/index.html" }
   ],
   "headers": [
     {
