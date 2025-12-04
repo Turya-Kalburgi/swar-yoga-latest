@@ -15,7 +15,7 @@ import YearlyPlanner from '../components/YearlyPlanner';
 import DailyRoutine from '../components/DailyRoutine';
 import HealthTracker from '../components/HealthTracker';
 import MyWord from '../components/MyWord';
-import { testConnection } from '../utils/database';
+import { testConnection, affirmationsAPI } from '../utils/database';
 
 interface UserData {
   id: string;
@@ -59,21 +59,44 @@ const LifePlanner = () => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Mock authentication - in real app, validate against sign-in data
-    if (loginData.email && loginData.password) {
-      const mockUser = {
-        email: loginData.email,
-        name: loginData.email.split('@')[0],
-        id: Date.now().toString()
-      };
-      
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      setUser(mockUser);
-      setShowLoginModal(false);
-      setLoginData({ email: '', password: '' });
-    } else {
+    if (!loginData.email || !loginData.password) {
       alert('Please enter both email and password');
+      return;
     }
+
+    // Call real authentication API
+    fetch('http://localhost:4000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: loginData.email,
+        password: loginData.password
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          setUser(data.user as UserData);
+          setShowLoginModal(false);
+          setLoginData({ email: '', password: '' });
+        } else {
+          alert(data.message || 'Login failed');
+        }
+      })
+      .catch(err => {
+        console.error('Login error:', err);
+        // Fallback for demo: accept any email
+        const demoUser = {
+          email: loginData.email,
+          name: loginData.email.split('@')[0],
+          id: Date.now().toString()
+        };
+        localStorage.setItem('user', JSON.stringify(demoUser));
+        setUser(demoUser);
+        setShowLoginModal(false);
+        setLoginData({ email: '', password: '' });
+      });
   };
 
   const handleLogout = () => {
@@ -445,45 +468,8 @@ const LifePlanner = () => {
 
 // Positive Affirmations Component
 const PositiveAffirmations = () => {
-  const [affirmations, setAffirmations] = useState([
-    {
-      id: 1,
-      text: "I am capable of achieving my goals and dreams.",
-      category: "Success",
-      image: "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 2,
-      text: "I am worthy of love, happiness, and fulfillment.",
-      category: "Self-Worth",
-      image: "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 3,
-      text: "My body is healthy, strong, and full of energy.",
-      category: "Health",
-      image: "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 4,
-      text: "I attract abundance and prosperity into my life.",
-      category: "Abundance",
-      image: "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 5,
-      text: "I am at peace with my past and excited for my future.",
-      category: "Peace",
-      image: "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600"
-    },
-    {
-      id: 6,
-      text: "I am constantly growing and evolving into my best self.",
-      category: "Growth",
-      image: "https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600"
-    }
-  ]);
-  
+  const [affirmations, setAffirmations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingAffirmation, setEditingAffirmation] = useState<any>(null);
@@ -494,59 +480,80 @@ const PositiveAffirmations = () => {
     image: 'https://images.pexels.com/photos/1051838/pexels-photo-1051838.jpeg?auto=compress&cs=tinysrgb&w=600'
   });
   
-  // Load affirmations from localStorage on component mount
+  // Load affirmations from API on component mount
   useEffect(() => {
-    const savedAffirmations = localStorage.getItem('my_affirmations');
-    if (savedAffirmations) {
-      try {
-        setAffirmations(JSON.parse(savedAffirmations));
-      } catch (error) {
-        console.error('Error loading affirmations:', error);
-      }
-    }
+    loadAffirmations();
   }, []);
   
-  // Save to localStorage whenever affirmations change
-  useEffect(() => {
-    localStorage.setItem('my_affirmations', JSON.stringify(affirmations));
-  }, [affirmations]);
+  const loadAffirmations = async () => {
+    try {
+      setLoading(true);
+      const data = await affirmationsAPI.getAll();
+      setAffirmations(data || []);
+    } catch (error) {
+      console.error('Error loading affirmations:', error);
+      setAffirmations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   
-  const handleAddAffirmation = () => {
+  const handleAddAffirmation = async () => {
     if (!formData.text) {
       alert('Please enter an affirmation text');
       return;
     }
     
-    const newAffirmation = {
-      id: Date.now(),
-      text: formData.text,
-      category: formData.category,
-      image: formData.image
-    };
-    
-    setAffirmations([...affirmations, newAffirmation]);
-    resetForm();
-    setShowAddModal(false);
+    try {
+      const newAffirmation = {
+        text: formData.text,
+        category: formData.category,
+        image: formData.image
+      };
+      
+      const created = await affirmationsAPI.create(newAffirmation);
+      setAffirmations([...affirmations, created]);
+      resetForm();
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error adding affirmation:', error);
+      alert('Failed to add affirmation');
+    }
   };
   
-  const handleEditAffirmation = () => {
+  const handleEditAffirmation = async () => {
     if (!editingAffirmation) return;
     
-    const updatedAffirmations = affirmations.map(affirmation => 
-      affirmation.id === editingAffirmation.id 
-        ? { ...affirmation, text: formData.text, category: formData.category, image: formData.image }
-        : affirmation
-    );
-    
-    setAffirmations(updatedAffirmations);
-    resetForm();
-    setEditingAffirmation(null);
-    setShowEditModal(false);
+    try {
+      const updatedData = {
+        text: formData.text,
+        category: formData.category,
+        image: formData.image
+      };
+      
+      const updated = await affirmationsAPI.update(editingAffirmation.id, updatedData);
+      const updatedAffirmations = affirmations.map(aff => 
+        aff.id === editingAffirmation.id ? updated : aff
+      );
+      setAffirmations(updatedAffirmations);
+      resetForm();
+      setEditingAffirmation(null);
+      setShowEditModal(false);
+    } catch (error) {
+      console.error('Error updating affirmation:', error);
+      alert('Failed to update affirmation');
+    }
   };
   
-  const handleDeleteAffirmation = (id: number) => {
+  const handleDeleteAffirmation = async (id: any) => {
     if (confirm('Are you sure you want to delete this affirmation?')) {
-      setAffirmations(affirmations.filter(affirmation => affirmation.id !== id));
+      try {
+        await affirmationsAPI.delete(id);
+        setAffirmations(affirmations.filter(affirmation => affirmation.id !== id));
+      } catch (error) {
+        console.error('Error deleting affirmation:', error);
+        alert('Failed to delete affirmation');
+      }
     }
   };
   

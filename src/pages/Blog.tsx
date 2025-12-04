@@ -1,111 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, User, ArrowRight, Clock, Globe } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
-// Header and Footer are provided by App routes; removed local imports to avoid duplicate rendering
-
-interface BlogPost {
-  id: string;
-  title: {
-    en: string;
-    hi: string;
-    mr: string;
-  };
-  excerpt: {
-    en: string;
-    hi: string;
-    mr: string;
-  };
-  author: string;
-  date: string;
-  readTime: {
-    en: string;
-    hi: string;
-    mr: string;
-  };
-  image: string;
-  slug: string;
-  category: string;
-}
+import { blogAPI, type BlogPost } from '../utils/blogData';
 
 const Blog: React.FC = () => {
   const [language, setLanguage] = useState<'en' | 'hi' | 'mr'>('en');
-  
-  const blogPosts: BlogPost[] = [
-    {
-      id: '1',
-      title: {
-        en: 'Mastering Sleep Postures for Better Health with Swar Yoga',
-        hi: 'स्वर योग के साथ बेहतर स्वास्थ्य के लिए नींद की मुद्राओं में महारत हासिल करना',
-        mr: 'स्वर योगासह उत्तम आरोग्यासाठी झोपेच्या मुद्रांमध्ये प्रावीण्य मिळवणे'
-      },
-      excerpt: {
-        en: 'Discover how Swar Yoga provides insights into optimal sleep positioning for enhanced health and well-being. Learn the ancient science of breath and its profound impact on your sleep quality.',
-        hi: 'जानें कैसे स्वर योग बेहतर स्वास्थ्य और कल्याण के लिए सर्वोत्तम नींद की स्थिति के बारे में अंतर्दृष्टि प्रदान करता है। सांस के प्राचीन विज्ञान और आपकी नींद की गुणवत्ता पर इसके गहरे प्रभाव के बारे में जानें।',
-        mr: 'स्वर योग कसे उत्तम आरोग्य आणि कल्याणासाठी झोपेच्या स्थितीबद्दल अंतर्दृष्टी देतो हे शोधा. श्वासाचे प्राचीन विज्ञान आणि तुमच्या झोपेच्या गुणवत्तेवर त्याचा खोल प्रभाव जाणून घ्या.'
-      },
-      author: 'Yogacharya Mohan Kalburgi',
-      date: '2024-04-21',
-      readTime: {
-        en: '8 min read',
-        hi: '8 मिनट का पठन',
-        mr: '8 मिनिटांचे वाचन'
-      },
-      image: 'https://i.postimg.cc/KzWbNy21/temp-Imagep-Ji-Dk-Y.avif',
-      slug: 'sleep-postures-swar-yoga',
-      category: 'Health'
-    },
-    {
-      id: '2',
-      title: {
-        en: 'The Science of Breath: Understanding Swar Yoga Fundamentals',
-        hi: 'श्वास का विज्ञान: स्वर योग के मूल सिद्धांतों को समझना',
-        mr: 'श्वासाचे विज्ञान: स्वर योगाच्या मूलभूत तत्त्वांचे आकलन'
-      },
-      excerpt: {
-        en: 'Explore the foundational principles of Swar Yoga and how the science of breath connects to every aspect of your physical and mental wellbeing. Learn practical techniques to harmonize your breath.',
-        hi: 'स्वर योग के मूलभूत सिद्धांतों और श्वास का विज्ञान आपके शारीरिक और मानसिक कल्याण के हर पहलू से कैसे जुड़ा है, इसका पता लगाएं। अपने श्वास को सामंजस्यपूर्ण बनाने के लिए व्यावहारिक तकनीकें सीखें।',
-        mr: 'स्वर योगाच्या मूलभूत तत्त्वांचा शोध घ्या आणि श्वासाचे विज्ञान तुमच्या शारीरिक आणि मानसिक कल्याणाच्या प्रत्येक पैलूशी कसे जोडलेले आहे हे जाणून घ्या. तुमच्या श्वासाचा समतोल राखण्यासाठी व्यावहारिक तंत्रे शिका.'
-      },
-      author: 'Yogacharya Mohan Kalburgi',
-      date: '2024-04-15',
-      readTime: {
-        en: '10 min read',
-        hi: '10 मिनट का पठन',
-        mr: '10 मिनिटांचे वाचन'
-      },
-      image: 'https://i.postimg.cc/3RfL08Hc/temp-Image-N5-TSEG.avif',
-      slug: 'science-of-breath-swar-yoga',
-      category: 'Education'
-    },
-    {
-      id: '3',
-      title: {
-        en: 'Healing Through Breath: Swar Yoga for Common Health Issues',
-        hi: 'सांस के माध्यम से उपचार: सामान्य स्वास्थ्य समस्याओं के लिए स्वर योग',
-        mr: 'श्वासाद्वारे उपचार: सामान्य आरोग्य समस्यांसाठी स्वर योग'
-      },
-      excerpt: {
-        en: 'Learn how specific breathing techniques in Swar Yoga can help address common health concerns like digestive issues, insomnia, stress, and respiratory problems naturally and effectively.',
-        hi: 'जानें कि स्वर योग में विशिष्ट श्वास तकनीकें पाचन संबंधी समस्याओं, अनिद्रा, तनाव और श्वसन संबंधी समस्याओं जैसी सामान्य स्वास्थ्य चिंताओं को प्राकृतिक और प्रभावी ढंग से कैसे दूर कर सकती हैं।',
-        mr: 'स्वर योगातील विशिष्ट श्वास तंत्रे पचनाच्या समस्या, अनिद्रा, ताण आणि श्वसनाच्या समस्यांसारख्या सामान्य आरोग्य समस्या नैसर्गिकरित्या आणि प्रभावीपणे कशा सोडवू शकतात हे जाणून घ्या.'
-      },
-      author: 'Yogacharya Mohan Kalburgi',
-      date: '2024-04-10',
-      readTime: {
-        en: '12 min read',
-        hi: '12 मिनट का पठन',
-        mr: '12 मिनिटांचे वाचन'
-      },
-      image: 'https://i.postimg.cc/vZ4BFXPF/temp-Image-IIb-JFp.avif',
-      slug: 'healing-through-breath-swar-yoga',
-      category: 'Health'
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  useEffect(() => {
+    loadBlogPosts();
+  }, []);
+
+  const loadBlogPosts = async () => {
+    try {
+      setLoading(true);
+      const posts = await blogAPI.getAll();
+      setBlogPosts(posts);
+    } catch (error) {
+      console.error('Error loading blog posts:', error);
+      setBlogPosts([]);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const categories = ['All', 'Health', 'Education', 'Lifestyle', 'Spiritual'];
-  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const filteredPosts = selectedCategory === 'All' 
     ? blogPosts 

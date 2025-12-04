@@ -4,8 +4,7 @@ import { format } from 'date-fns';
 interface CertificateTemplateProps {
   fullName: string;
   workshopDetails: string;
-  // accept either a Date or ISO/string; make optional and fall back to today
-  date?: string | Date;
+  date: string;
   photoUrl?: string;
 }
 
@@ -15,14 +14,7 @@ const CertificateTemplate: React.FC<CertificateTemplateProps> = ({
   date,
   photoUrl
 }) => {
-  let formattedDate = '';
-  try {
-    const d = date ? (date instanceof Date ? date : new Date(date)) : new Date();
-    formattedDate = format(d, 'dd MMMM yyyy');
-  } catch (err) {
-    // fallback: show raw value or today's date if parsing failed
-    formattedDate = typeof date === 'string' && date ? date : format(new Date(), 'dd MMMM yyyy');
-  }
+  const formattedDate = format(new Date(date), 'dd MMMM yyyy');
   
   return (
     <div className="w-[842px] h-[595px] bg-white relative overflow-hidden border border-gray-300 shadow-lg">

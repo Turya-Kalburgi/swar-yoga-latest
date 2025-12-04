@@ -53,99 +53,19 @@ const saveSignInData = (data: any[]) => {
   localStorage.setItem('signin_data', JSON.stringify(data));
 };
 
-// Generate sample signup data for demo
-const generateSampleSignUpData = (): any[] => {
-  return [
-    {
-      id: 1,
-      name: 'Priya Sharma',
-      email: 'priya.sharma@gmail.com',
-      phone: '9876543210',
-      countryCode: '+91',
-      country: 'India',
-      state: 'Maharashtra',
-      gender: 'female',
-      age: 32,
-      profession: 'Software Engineer',
-      registrationDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
-      status: 'active',
-      source: 'signup'
-    },
-    {
-      id: 2,
-      name: 'Rahul Verma',
-      email: 'rahul.verma@outlook.com',
-      phone: '8765432109',
-      countryCode: '+91',
-      country: 'India',
-      state: 'Delhi',
-      gender: 'male',
-      age: 28,
-      profession: 'Marketing Manager',
-      registrationDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
-      status: 'active',
-      source: 'signup'
-    },
-    {
-      id: 3,
-      name: 'Ananya Patel',
-      email: 'ananya.patel@yahoo.com',
-      phone: '7654321098',
-      countryCode: '+91',
-      country: 'India',
-      state: 'Gujarat',
-      gender: 'female',
-      age: 35,
-      profession: 'Yoga Instructor',
-      registrationDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-      status: 'active',
-      source: 'signup'
-    }
-  ];
-};
+// Sample data removed - using real data from localStorage only
 
-// Generate sample signin data for demo
-const generateSampleSignInData = (): any[] => {
-  return [
-    {
-      id: 1,
-      email: 'priya.sharma@gmail.com',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-      ip: '192.168.1.1',
-      device: 'Chrome on Windows',
-      status: 'success'
-    },
-    {
-      id: 2,
-      email: 'rahul.verma@outlook.com',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-      ip: '192.168.1.2',
-      device: 'Safari on macOS',
-      status: 'success'
-    },
-    {
-      id: 3,
-      email: 'ananya.patel@yahoo.com',
-      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
-      ip: '192.168.1.3',
-      device: 'Firefox on Linux',
-      status: 'success'
-    }
-  ];
-};
-
-// Initialize auth data if empty
+// Initialize auth data if empty (no dummy data)
 const initializeAuthData = () => {
+  // Just ensure data exists in localStorage, don't add dummy data
   const signupData = getSignUpData();
-  if (signupData.length === 0) {
-    const sampleSignupData = generateSampleSignUpData();
-    saveSignUpData(sampleSignupData);
+  if (!Array.isArray(signupData)) {
+    saveSignUpData([]);
   }
   
   const signinData = getSignInData();
-  if (signinData.length === 0) {
-    const sampleSigninData = generateSampleSignInData();
-    saveSignInData(sampleSigninData);
+  if (!Array.isArray(signinData)) {
+    saveSignInData([]);
   }
 };
 

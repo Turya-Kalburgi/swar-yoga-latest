@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Users, Filter, Search, Star, Play, DollarSign, Globe, RefreshCw, ShoppingCart, ArrowRight, ExternalLink } from 'lucide-react';
 // Header and Footer are provided by App routes; removed local imports to avoid duplicate rendering
-import { workshopAPI, Workshop, debugWorkshopDatabase, forceRefreshWorkshops } from '../utils/workshopData';
+import { getPublicWorkshops, type WorkshopBatch as Workshop } from '../utils/workshopAPI';
 import { cartAPI } from '../utils/cartData';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -25,7 +25,7 @@ const WorkshopPage = () => {
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
-  // Load workshops from the workshop data system (connected to admin panel)
+  // Load workshops from the API
   const loadWorkshops = async (showRefreshing = false) => {
     try {
       if (showRefreshing) setRefreshing(true);
@@ -33,13 +33,7 @@ const WorkshopPage = () => {
       
       console.log('🔄 === LOADING WORKSHOPS FOR PUBLIC PAGE ===');
       
-      // Debug the database state first
-      debugWorkshopDatabase();
-      
-      // Force refresh from localStorage
-      forceRefreshWorkshops();
-      
-      const publicWorkshops = await workshopAPI.getPublicWorkshops();
+      const publicWorkshops = await getPublicWorkshops();
       console.log('📋 Final result - workshops to display:', publicWorkshops);
       
       setWorkshops(publicWorkshops);
@@ -60,22 +54,28 @@ const WorkshopPage = () => {
     console.log('🚀 WorkshopPage component mounted, loading workshops...');
     loadWorkshops();
     
+    // Auto-refresh workshops every 10 seconds to check for new batches
+    const autoRefreshInterval = setInterval(() => {
+      console.log('⏰ Auto-refresh check at', new Date().toLocaleTimeString());
+      loadWorkshops();
+    }, 10000); // Refresh every 10 seconds
+
     // Set up BroadcastChannel listener if available
     let bc: BroadcastChannel | null = null;
     try {
       bc = new BroadcastChannel('workshop_updates');
       bc.onmessage = (event) => {
         if (event.data.type === 'WORKSHOP_UPDATE') {
-          console.log('Received workshop update from another tab:', event.data.timestamp);
+          console.log('📡 Received workshop update from admin panel:', event.data.timestamp);
           loadWorkshops();
-          toast.info('Workshops have been updated!');
+          toast.info('✨ New workshops added!');
         }
       };
     } catch (error) {
-      console.log('BroadcastChannel not supported, using localStorage events only');
+      console.log('BroadcastChannel not supported, using auto-refresh only');
     }
     
-    // Set up storage event listener
+    // Set up storage event listener for multi-tab sync
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'workshop_sync_trigger' || event.key === 'swaryoga_workshops') {
         console.log('🔄 Storage change detected, reloading workshops...');
@@ -86,8 +86,9 @@ const WorkshopPage = () => {
     
     window.addEventListener('storage', handleStorageChange);
     
-    // Clean up event listeners
+    // Clean up event listeners and interval
     return () => {
+      clearInterval(autoRefreshInterval);
       window.removeEventListener('storage', handleStorageChange);
       if (bc) bc.close();
     };
@@ -143,7 +144,7 @@ const WorkshopPage = () => {
         userId: user.id,
         userName: user.name,
         userEmail: user.email,
-        workshopId: workshop.id,
+        workshopId: parseInt(workshop.id || '0'),
         workshopTitle: workshop.title,
         instructor: workshop.instructor,
         startDate: workshop.startDate,

@@ -28,11 +28,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       } catch (error) {
         console.error('Error parsing admin user:', error);
         setIsAuthenticated(false);
-        navigate('/admin-login');
+        navigate('/admin');
       }
     } else {
       setIsAuthenticated(false);
-      navigate('/admin-login');
+      navigate('/admin');
     }
   }, [navigate]);
 
@@ -40,7 +40,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     if (confirm('Are you sure you want to sign out?')) {
       localStorage.removeItem('adminUser');
       localStorage.removeItem('adminAuth');
-      navigate('/admin-login');
+      navigate('/admin');
     }
   };
 

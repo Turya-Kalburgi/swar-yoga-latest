@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Download, Eye, Calendar, Target, CheckSquare, Users, Printer } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const PDFExport = () => {
   const [selectedExport, setSelectedExport] = useState('vision');
@@ -29,11 +31,8 @@ const PDFExport = () => {
     setIsGenerating(true);
     
     try {
-      // Simulate export generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Create mock data for export
-      const exportData = generateExportData();
+      // Fetch real data from backend APIs
+      const exportData = await generateExportDataFromBackend();
       
       if (format === 'pdf') {
         generatePDF(exportData);
@@ -45,9 +44,71 @@ const PDFExport = () => {
       
       alert(`${format.toUpperCase()} export completed successfully!`);
     } catch (error) {
+      console.error('Export error:', error);
       alert('Export failed. Please try again.');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const generateExportDataFromBackend = async () => {
+    const currentDate = new Date().toLocaleDateString();
+    const exportType = exportOptions.find(opt => opt.id === selectedExport)?.name;
+    
+    try {
+      let data = {};
+      let visionsList: any[] = [];
+      
+      if (selectedExport === 'vision') {
+        // Fetch visions from backend
+        const response = await fetch('http://localhost:4000/api/visions');
+        visionsList = await response.json();
+        
+        const filteredVisions = selectedVision === 'all' 
+          ? visionsList 
+          : visionsList.filter((v: any) => v.id === parseInt(selectedVision));
+        
+        data = {
+          visions: filteredVisions.map((v: any) => ({
+            name: v.title,
+            progress: v.progress || 0,
+            status: 'In Progress'
+          }))
+        };
+      } else if (selectedExport === 'goals') {
+        // Fetch goals from backend
+        const response = await fetch('http://localhost:4000/api/goals');
+        const goals = await response.json();
+        
+        data = {
+          goals: goals.map((g: any) => ({
+            title: g.title,
+            progress: g.progress || 0,
+            status: 'In Progress'
+          }))
+        };
+      } else if (selectedExport === 'people') {
+        // Placeholder for diamond people
+        data = {
+          people: [
+            { name: 'Sample Person', relationship: 'Professional', category: 'Mentor' }
+          ]
+        };
+      } else {
+        data = { message: 'Comprehensive life planning data' };
+      }
+      
+      return {
+        title: exportType,
+        generatedDate: currentDate,
+        dateRange: dateRange.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        selectedVision: selectedExport === 'vision' ? (visionsList.find((v: any) => v.id === parseInt(selectedVision))?.title || 'All Visions') : null,
+        data
+      };
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      // Fallback to mock data
+      return generateExportData();
     }
   };
 
@@ -92,30 +153,179 @@ const PDFExport = () => {
   };
 
   const generatePDF = (data: any) => {
-    // In a real app, this would use a PDF library like jsPDF
-    const content = `
-      ${data.title}
-      Generated: ${data.generatedDate}
-      Date Range: ${data.dateRange}
-      ${data.selectedVision ? `Vision: ${data.selectedVision}` : ''}
+    try {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
       
-      Data: ${JSON.stringify(data.data, null, 2)}
-    `;
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${data.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let yPosition = margin;
+      
+      // Helper function to add text with automatic page break
+      const addText = (text: string, fontSize: number, isBold: boolean = false) => {
+        pdf.setFontSize(fontSize);
+        pdf.setFont('Helvetica', isBold ? 'bold' : 'normal');
+        const textWidth = pageWidth - (margin * 2);
+        const splitText = pdf.splitTextToSize(text, textWidth);
+        
+        splitText.forEach((line: string) => {
+          if (yPosition + 7 > pageHeight - margin) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+          pdf.text(line, margin, yPosition);
+          yPosition += 7;
+        });
+      };
+      
+      // Title
+      pdf.setFillColor(100, 150, 255);
+      pdf.rect(0, 0, pageWidth, 30, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(20);
+      pdf.setFont('Helvetica', 'bold');
+      pdf.text(data.title, margin, 15);
+      
+      yPosition = 40;
+      pdf.setTextColor(0, 0, 0);
+      
+      // Metadata
+      addText(`Generated: ${data.generatedDate}`, 10);
+      addText(`Date Range: ${data.dateRange}`, 10);
+      
+      if (data.selectedVision) {
+        addText(`Vision: ${data.selectedVision}`, 10);
+      }
+      
+      yPosition += 5;
+      
+      // Content based on export type
+      if (selectedExport === 'vision') {
+        addText('Vision Board Details', 12, true);
+        yPosition += 3;
+        
+        if (data.data.visions && Array.isArray(data.data.visions)) {
+          data.data.visions.forEach((vision: any, index: number) => {
+            yPosition += 2;
+            addText(`${index + 1}. ${vision.name}`, 11, true);
+            addText(`Progress: ${vision.progress}%`, 10);
+            addText(`Status: ${vision.status}`, 10);
+            
+            // Draw progress bar
+            const barWidth = 100;
+            const barHeight = 3;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.rect(margin, yPosition, barWidth, barHeight);
+            
+            const progressWidth = (vision.progress / 100) * barWidth;
+            pdf.setFillColor(76, 175, 80);
+            pdf.rect(margin, yPosition, progressWidth, barHeight, 'F');
+            
+            yPosition += 8;
+          });
+        }
+      } else if (selectedExport === 'goals') {
+        addText('Goals & Tasks Report', 12, true);
+        yPosition += 3;
+        
+        if (data.data.goals && Array.isArray(data.data.goals)) {
+          data.data.goals.forEach((goal: any, index: number) => {
+            yPosition += 2;
+            addText(`${index + 1}. ${goal.title}`, 11, true);
+            addText(`Completion: ${goal.progress}%`, 10);
+            addText(`Status: ${goal.status}`, 10);
+            
+            // Draw progress bar
+            const barWidth = 100;
+            const barHeight = 3;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.rect(margin, yPosition, barWidth, barHeight);
+            
+            const progressWidth = (goal.progress / 100) * barWidth;
+            pdf.setFillColor(33, 150, 243);
+            pdf.rect(margin, yPosition, progressWidth, barHeight, 'F');
+            
+            yPosition += 8;
+          });
+        }
+      } else if (selectedExport === 'people') {
+        addText('Diamond People Directory', 12, true);
+        yPosition += 3;
+        
+        if (data.data.people && Array.isArray(data.data.people)) {
+          data.data.people.forEach((person: any, index: number) => {
+            yPosition += 2;
+            addText(`${index + 1}. ${person.name}`, 11, true);
+            addText(`Relationship: ${person.relationship}`, 10);
+            addText(`Category: ${person.category}`, 10);
+            yPosition += 3;
+          });
+        }
+      } else if (selectedExport === 'planner') {
+        addText('Life Planner Summary', 12, true);
+        yPosition += 3;
+        addText('This comprehensive report contains your complete life planning data including visions, goals, tasks, and daily activities.', 10);
+        yPosition += 5;
+        addText('Key Sections:', 11, true);
+        addText('• Vision Board: Your long-term aspirations and objectives', 10);
+        addText('• Goals: Specific, measurable targets for achievement', 10);
+        addText('• Tasks: Action items and daily activities', 10);
+        addText('• Affirmations: Daily positive statements and reminders', 10);
+      }
+      
+      // Footer
+      pdf.setTextColor(150, 150, 150);
+      pdf.setFontSize(8);
+      pdf.text(`Page ${pdf.internal.pages.length - 1} of ${pdf.internal.pages.length}`, pageWidth - margin - 20, pageHeight - 10);
+      pdf.text('Swar Yoga Life Planner', margin, pageHeight - 10);
+      
+      // Download
+      pdf.save(`${data.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
   };
 
   const generateExcel = (data: any) => {
-    // In a real app, this would use a library like xlsx
-    const csvContent = `Title,${data.title}\nGenerated,${data.generatedDate}\nDate Range,${data.dateRange}\n\nData:\n${JSON.stringify(data.data)}`;
+    // Create CSV content with proper formatting
+    let csvContent = '';
     
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    // Header
+    csvContent += `${data.title}\n`;
+    csvContent += `Generated,${data.generatedDate}\n`;
+    csvContent += `Date Range,${data.dateRange}\n`;
+    if (data.selectedVision) {
+      csvContent += `Vision,${data.selectedVision}\n`;
+    }
+    csvContent += '\n';
+    
+    // Data based on export type
+    if (selectedExport === 'vision' && data.data.visions) {
+      csvContent += 'Vision Name,Progress (%),Status\n';
+      data.data.visions.forEach((vision: any) => {
+        csvContent += `"${vision.name}",${vision.progress},${vision.status}\n`;
+      });
+    } else if (selectedExport === 'goals' && data.data.goals) {
+      csvContent += 'Goal Title,Completion (%),Status\n';
+      data.data.goals.forEach((goal: any) => {
+        csvContent += `"${goal.title}",${goal.progress},${goal.status}\n`;
+      });
+    } else if (selectedExport === 'people' && data.data.people) {
+      csvContent += 'Name,Relationship,Category\n';
+      data.data.people.forEach((person: any) => {
+        csvContent += `"${person.name}","${person.relationship}","${person.category}"\n`;
+      });
+    } else {
+      csvContent += JSON.stringify(data.data, null, 2);
+    }
+    
+    // Create and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

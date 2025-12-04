@@ -16,7 +16,14 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
-import { workshopAPI, Workshop, debugWorkshopDatabase, forceRefreshWorkshops, syncWorkshopsAcrossTabs } from '../../utils/workshopData';
+import { 
+  getAllWorkshops, 
+  createWorkshop, 
+  updateWorkshop, 
+  deleteWorkshop, 
+  toggleWorkshopVisibility,
+  type WorkshopBatch as Workshop
+} from '../../utils/workshopAPI';
 import { toast } from 'react-toastify';
 
 const AdminWorkshops = () => {
@@ -102,14 +109,13 @@ const AdminWorkshops = () => {
     try {
       setLoading(true);
       
-      // Debug database state
-      debugWorkshopDatabase();
+      console.log('📋 Loading workshops from API...');
       
-      const data = await workshopAPI.getAllWorkshops();
-      console.log('Loaded workshops in admin:', data);
+      const data = await getAllWorkshops();
+      console.log('✅ Loaded workshops from API:', data);
       setWorkshops(data);
     } catch (error) {
-      console.error('Error loading workshops:', error);
+      console.error('❌ Error loading workshops:', error);
       toast.error('Failed to load workshops');
     } finally {
       setLoading(false);
@@ -171,16 +177,16 @@ const AdminWorkshops = () => {
     e.preventDefault();
     
     try {
-      console.log('Submitting workshop form:', formData);
+      console.log('📤 Submitting workshop form:', formData);
       
       if (editingWorkshop) {
-        console.log('Updating existing workshop:', editingWorkshop.id);
-        await workshopAPI.updateWorkshop(editingWorkshop.id, formData);
+        console.log('✏️ Updating existing workshop:', editingWorkshop.id);
+        await updateWorkshop(editingWorkshop.id, formData);
         toast.success('Workshop updated successfully!');
       } else {
-        console.log('Creating new workshop');
-        const newWorkshop = await workshopAPI.addWorkshop(formData);
-        console.log('Created workshop:', newWorkshop);
+        console.log('➕ Creating new workshop');
+        const newWorkshop = await createWorkshop(formData);
+        console.log('✅ Created workshop:', newWorkshop);
         toast.success('Workshop created successfully!');
       }
       
@@ -189,12 +195,26 @@ const AdminWorkshops = () => {
       setShowAddModal(false);
       setEditingWorkshop(null);
       
-      // Manually sync workshops across tabs
-      await syncWorkshopsAcrossTabs();
+      // Broadcast to other tabs/windows
+      try {
+        const bc = new BroadcastChannel('workshop_updates');
+        bc.postMessage({ 
+          type: 'WORKSHOP_UPDATE', 
+          action: editingWorkshop ? 'update' : 'create',
+          timestamp: Date.now() 
+        });
+        bc.close();
+        console.log('📡 Broadcast sent to other tabs');
+      } catch (error) {
+        console.log('BroadcastChannel not available');
+      }
+      
+      // Also update localStorage for fallback
+      localStorage.setItem('workshop_sync_trigger', Date.now().toString());
       
       // Show success message
       setSyncStatus('success');
-      setSyncMessage(editingWorkshop ? 'Workshop updated and synced successfully!' : 'Workshop created and synced successfully!');
+      setSyncMessage(editingWorkshop ? 'Workshop updated successfully!' : 'Workshop created successfully!');
       
       // Reset status after 3 seconds
       setTimeout(() => {
@@ -202,7 +222,7 @@ const AdminWorkshops = () => {
         setSyncMessage('');
       }, 3000);
     } catch (error) {
-      console.error('Error saving workshop:', error);
+      console.error('❌ Error saving workshop:', error);
       toast.error('Error saving workshop. Please try again.');
       
       setSyncStatus('error');
@@ -280,14 +300,26 @@ const AdminWorkshops = () => {
     setShowAddModal(true);
   };
 
-  const handleToggleVisibility = async (id: number) => {
+  const handleToggleVisibility = async (id: string) => {
     try {
-      console.log('Toggling visibility for workshop:', id);
-      await workshopAPI.toggleWorkshopVisibility(id);
+      console.log('👁️ Toggling visibility for workshop:', id);
+      await toggleWorkshopVisibility(id);
       await loadWorkshops();
       
-      // Manually sync workshops across tabs
-      await syncWorkshopsAcrossTabs();
+      // Broadcast update to other tabs
+      try {
+        const bc = new BroadcastChannel('workshop_updates');
+        bc.postMessage({ 
+          type: 'WORKSHOP_UPDATE', 
+          action: 'visibility',
+          timestamp: Date.now() 
+        });
+        bc.close();
+      } catch (error) {
+        console.log('BroadcastChannel not available');
+      }
+      
+      localStorage.setItem('workshop_sync_trigger', Date.now().toString());
       toast.success('Workshop visibility updated successfully!');
     } catch (error) {
       console.error('Error toggling visibility:', error);
@@ -295,15 +327,27 @@ const AdminWorkshops = () => {
     }
   };
 
-  const handleDeleteWorkshop = async (id: number) => {
+  const handleDeleteWorkshop = async (id: string) => {
     if (confirm('Are you sure you want to delete this workshop?')) {
       try {
-        console.log('Deleting workshop:', id);
-        await workshopAPI.deleteWorkshop(id);
+        console.log('🗑️ Deleting workshop:', id);
+        await deleteWorkshop(id);
         await loadWorkshops();
         
-        // Manually sync workshops across tabs
-        await syncWorkshopsAcrossTabs();
+        // Broadcast update to other tabs
+        try {
+          const bc = new BroadcastChannel('workshop_updates');
+          bc.postMessage({ 
+            type: 'WORKSHOP_UPDATE', 
+            action: 'delete',
+            timestamp: Date.now() 
+          });
+          bc.close();
+        } catch (error) {
+          console.log('BroadcastChannel not available');
+        }
+        
+        localStorage.setItem('workshop_sync_trigger', Date.now().toString());
         toast.success('Workshop deleted successfully!');
       } catch (error) {
         console.error('Error deleting workshop:', error);
@@ -315,7 +359,6 @@ const AdminWorkshops = () => {
   const handleManualSync = async () => {
     try {
       setSyncStatus('syncing');
-      await syncWorkshopsAcrossTabs();
       await loadWorkshops();
       setSyncStatus('success');
       setSyncMessage('Workshops synced successfully!');

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
 import path from 'path';
+import workshopRoutes from './routes/workshops.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -26,6 +27,9 @@ try {
 app.use(cors());
 app.use(express.json());
 
+// Workshop Routes - mounted at /api/admin/workshops
+app.use('/api/admin/workshops', workshopRoutes);
+
 // Resolve data file path. decodeURIComponent fixes percent-encoded spaces (e.g. 'project%2013')
 const serverDir = decodeURIComponent(new URL('.', import.meta.url).pathname);
 const DATA_FILE = path.resolve(serverDir, '../server-data.json');
@@ -35,7 +39,7 @@ async function readData() {
     const txt = await fs.readFile(DATA_FILE, 'utf-8');
     return JSON.parse(txt);
   } catch (err) {
-    const initial = { users: [], visions: [], goals: [], tasks: [], todos: [], dailyWords: [], health: [], routines: [], people: [], affirmations: [] };
+    const initial = { users: [], visions: [], goals: [], tasks: [], todos: [], dailyWords: [], health: [], routines: [], people: [], affirmations: [], blogPosts: [] };
     await writeData(initial);
     return initial;
   }
@@ -93,7 +97,8 @@ const resources = {
   affirmations: 'affirmations',
   health: 'health',
   routines: 'routines',
-  people: 'people'
+  people: 'people',
+  'blog-posts': 'blogPosts'
 };
 
 Object.entries(resources).forEach(([route, key]) => {

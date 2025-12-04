@@ -29,57 +29,13 @@ const saveMessages = (messages: ContactMessage[]) => {
   localStorage.setItem('contact_messages', JSON.stringify(messages));
 };
 
-// Generate sample messages for demo
-const generateSampleMessages = (): ContactMessage[] => {
-  return [
-    {
-      id: 1,
-      name: 'Priya Sharma',
-      email: 'priya.sharma@gmail.com',
-      whatsapp: '9876543210',
-      countryCode: '+91',
-      subject: 'Workshop Inquiry',
-      message: 'I am interested in the upcoming Swar Yoga Master Class. Could you please provide more details about the curriculum and prerequisites?',
-      submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-      status: 'unread',
-      priority: 'medium'
-    },
-    {
-      id: 2,
-      name: 'Rahul Verma',
-      email: 'rahul.verma@outlook.com',
-      whatsapp: '8765432109',
-      countryCode: '+91',
-      subject: 'Resort Booking',
-      message: 'I would like to book accommodation at your resort for a family of 4 from June 15-20, 2025. Do you have availability during this period?',
-      submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-      status: 'read',
-      priority: 'high'
-    },
-    {
-      id: 3,
-      name: 'Ananya Patel',
-      email: 'ananya.patel@yahoo.com',
-      whatsapp: '7654321098',
-      countryCode: '+91',
-      subject: 'Feedback',
-      message: 'I recently attended your 90 Days Weight Loss Program and wanted to share my positive experience. The program was well-structured and the instructors were very knowledgeable.',
-      submittedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
-      status: 'replied',
-      priority: 'low'
-    }
-  ];
-};
+// Sample messages removed - using real data from localStorage only
 
-// Initialize contact data if empty
+// Initialize contact data if empty (no dummy data)
 const initializeContactData = () => {
   const messages = getMessages();
-  if (messages.length === 0) {
-    const sampleMessages = generateSampleMessages();
-    saveMessages(sampleMessages);
-    return sampleMessages;
-  }
-  return messages;
+  // Just return existing messages, don't add dummy data
+  return Array.isArray(messages) ? messages : [];
 };
 
 // Contact API methods

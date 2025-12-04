@@ -14,6 +14,8 @@ import {
 import AdminLayout from '../../components/AdminLayout';
 import { userAPI } from '../../utils/userData';
 import { workshopAPI } from '../../utils/workshopData';
+import { cartAPI } from '../../utils/cartData';
+import { contactAPI } from '../../utils/contactData';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -43,9 +45,31 @@ const AdminDashboard = () => {
       // Load workshop stats
       const workshopStats = await workshopAPI.getWorkshopStats();
       
-      // Mock cart and contact stats (in real app, these would come from APIs)
-      const cartStats = { totalItems: 15, activeUsers: 8 };
-      const contactStats = { totalMessages: 12, unread: 5 };
+      // Load cart stats by fetching all cart items
+      let cartStats = { totalItems: 0, activeUsers: 0 };
+      try {
+        const cartItems = await cartAPI.getAllItems?.();
+        if (cartItems && Array.isArray(cartItems)) {
+          cartStats.totalItems = cartItems.length;
+          // Count unique users
+          const uniqueUsers = new Set(cartItems.map(item => item.userId));
+          cartStats.activeUsers = uniqueUsers.size;
+        }
+      } catch (e) {
+        console.warn('Cart stats unavailable');
+      }
+      
+      // Load contact stats by fetching all messages
+      let contactStats = { totalMessages: 0, unread: 0 };
+      try {
+        const messages = await contactAPI.getAll?.();
+        if (messages && Array.isArray(messages)) {
+          contactStats.totalMessages = messages.length;
+          contactStats.unread = messages.filter(m => m.status === 'unread').length;
+        }
+      } catch (e) {
+        console.warn('Contact stats unavailable');
+      }
       
       setStats({
         totalUsers: userStats.totalUsers,
@@ -198,37 +222,51 @@ const AdminDashboard = () => {
             </div>
             
             <div className="space-y-4">
-              <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">New user registration</p>
-                  <p className="text-xs text-gray-600">priya.sharma@gmail.com joined 2 hours ago</p>
+              {stats.recentSignups > 0 && (
+                <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">New user registrations</p>
+                    <p className="text-xs text-gray-600">{stats.recentSignups} users signed up recently</p>
+                  </div>
                 </div>
-              </div>
+              )}
               
-              <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-lg">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">Workshop enrollment</p>
-                  <p className="text-xs text-gray-600">Mindful Weight Loss Journey - 3 new enrollments</p>
+              {stats.totalEnrollments > 0 && (
+                <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">Workshop enrollments</p>
+                    <p className="text-xs text-gray-600">{stats.totalEnrollments} total enrollments</p>
+                  </div>
                 </div>
-              </div>
+              )}
               
-              <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-lg">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">New workshop created</p>
-                  <p className="text-xs text-gray-600">Advanced Meditation Retreat published</p>
+              {stats.totalWorkshops > 0 && (
+                <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-lg">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">Workshops created</p>
+                    <p className="text-xs text-gray-600">{stats.totalWorkshops} workshops available</p>
+                  </div>
                 </div>
-              </div>
+              )}
               
-              <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-lg">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">Contact message received</p>
-                  <p className="text-xs text-gray-600">New inquiry about workshop pricing</p>
+              {stats.contactMessages > 0 && (
+                <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-lg">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-800">Contact messages</p>
+                    <p className="text-xs text-gray-600">{stats.contactMessages} messages pending</p>
+                  </div>
                 </div>
-              </div>
+              )}
+              
+              {stats.recentSignups === 0 && stats.totalEnrollments === 0 && stats.totalWorkshops === 0 && stats.contactMessages === 0 && (
+                <div className="flex items-center justify-center p-8 text-gray-500">
+                  <p className="text-sm">No recent activity yet</p>
+                </div>
+              )}
             </div>
           </div>
 

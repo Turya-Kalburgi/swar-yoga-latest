@@ -1,6 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from 'react';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -16,9 +17,17 @@ import CheckoutPage from './pages/CheckoutPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import UserAccount from './pages/UserAccount';
+import AdminSignIn from './pages/AdminSignIn';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminWorkshops from './pages/admin/AdminWorkshops';
+import AdminSignupData from './pages/admin/AdminSignupData';
+import AdminSigninData from './pages/admin/AdminSigninData';
+import AdminCartData from './pages/admin/AdminCartData';
+import AdminContactData from './pages/admin/AdminContactData';
 import AdminAccounting from './pages/admin/AdminAccounting';
+import CertificateCreator from './pages/admin/CertificateCreator';
 import LifePlanner from './pages/LifePlanner';
+import SwarCalendar from './pages/SwarCalendar';
 
 import DailyPlanner from './components/DailyPlanner';
 import WeeklyPlanner from './components/WeeklyPlanner';
@@ -30,6 +39,29 @@ import { CartProvider } from './context/CartContext';
 import { AdminDataProvider } from './context/AdminDataContext';
 import { AdminProvider } from './context/AdminContext';
 import { ThemeProvider } from './context/ThemeContext';
+
+// Protected Route Component for Admin Pages
+const ProtectedAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if admin session exists
+    const adminUser = localStorage.getItem('adminUser');
+    setIsAuthenticated(!!adminUser);
+    setLoading(false);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <>{children}</> : <AdminSignIn />;
+};
 
 function App() {
   return (
@@ -51,9 +83,17 @@ function App() {
                   <Route path="/signin" element={<><Header /><SignInPage /><Footer /></>} />
                   <Route path="/signup" element={<><Header /><SignUpPage /><Footer /></>} />
                   <Route path="/account" element={<><Header /><UserAccount /><Footer /></>} />
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/accounting" element={<><Header /><AdminAccounting /><Footer /></>} />
+                  <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+                  <Route path="/admin/workshops" element={<ProtectedAdminRoute><AdminWorkshops /></ProtectedAdminRoute>} />
+                  <Route path="/admin/signup-data" element={<ProtectedAdminRoute><AdminSignupData /></ProtectedAdminRoute>} />
+                  <Route path="/admin/signin-data" element={<ProtectedAdminRoute><AdminSigninData /></ProtectedAdminRoute>} />
+                  <Route path="/admin/cart-data" element={<ProtectedAdminRoute><AdminCartData /></ProtectedAdminRoute>} />
+                  <Route path="/admin/contact-data" element={<ProtectedAdminRoute><AdminContactData /></ProtectedAdminRoute>} />
+                  <Route path="/admin/accounting" element={<ProtectedAdminRoute><AdminAccounting /></ProtectedAdminRoute>} />
+                  <Route path="/admin/certificates" element={<ProtectedAdminRoute><CertificateCreator /></ProtectedAdminRoute>} />
+                  <Route path="/accounting" element={<ProtectedAdminRoute><AdminAccounting /></ProtectedAdminRoute>} />
                   <Route path="/life-planner" element={<><Header /><LifePlanner /><Footer /></>} />
+                  <Route path="/swar-calendar" element={<><Header /><SwarCalendar /><Footer /></>} />
                   <Route path="/vision-board/daily" element={<><Header /><DailyPlanner /><Footer /></>} />
                   <Route path="/vision-board/weekly" element={<><Header /><WeeklyPlanner /><Footer /></>} />
                   <Route path="/vision-board/monthly" element={<><Header /><MonthlyPlanner /><Footer /></>} />

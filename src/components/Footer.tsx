@@ -252,7 +252,7 @@ const Footer = () => {
                 <span>Life Planner</span>
               </Link>
               <Link 
-                to="/admin-login" 
+                to="/admin" 
                 className="flex items-center space-x-2 hover:text-green-400 transition-colors group"
               >
                 <Settings className="h-5 w-5 text-green-400 group-hover:rotate-90 transition-transform duration-300" />

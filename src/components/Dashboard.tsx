@@ -18,9 +18,6 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import VisionForm from './VisionForm';
-import GoalForm from './GoalForm';
-import { visionAPI, goalsAPI } from '../utils/database';
 
 const Dashboard: React.FC = () => {
   const [showVisionModal, setShowVisionModal] = useState(false);
@@ -163,32 +160,6 @@ const Dashboard: React.FC = () => {
       setShowGoalModal(false);
       // Show success message or update UI
       alert('Goal created successfully!');
-    }
-  };
-
-  const handleVisionSubmit = async (visionData: any) => {
-    try {
-      const created = await visionAPI.create({ ...visionData, year: new Date(visionData.date || Date.now()).getFullYear() });
-      // TODO: update local state or refresh list if available
-      alert('Vision created successfully!');
-    } catch (err) {
-      console.error('Failed to create vision', err);
-      alert('Could not save vision — see console');
-    } finally {
-      setShowVisionModal(false);
-    }
-  };
-
-  const handleGoalSubmit = async (goalData: any) => {
-    try {
-      const created = await goalsAPI.create({ ...goalData, year: new Date(goalData.date || Date.now()).getFullYear() });
-      // TODO: update local state or refresh list if available
-      alert('Goal created successfully!');
-    } catch (err) {
-      console.error('Failed to create goal', err);
-      alert('Could not save goal — see console');
-    } finally {
-      setShowGoalModal(false);
     }
   };
 
@@ -420,18 +391,270 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Add Vision Modal */}
       {showVisionModal && (
-        <VisionForm
-          onCancel={() => setShowVisionModal(false)}
-          onSubmit={handleVisionSubmit}
-        />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+              <h2 className="text-base sm:text-lg font-bold text-gray-800">Add New Vision</h2>
+              <button
+                onClick={() => setShowVisionModal(false)}
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg sm:rounded-xl transition-colors"
+              >
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Vision Title *
+                </label>
+                <input
+                  type="text"
+                  value={newVision.title}
+                  onChange={(e) => setNewVision(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 text-xs sm:text-sm"
+                  placeholder="Enter vision title..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Description *
+                </label>
+                <textarea
+                  value={newVision.description}
+                  onChange={(e) => setNewVision(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 resize-none text-xs sm:text-sm"
+                  placeholder="Describe your vision..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Category
+                </label>
+                <select
+                  value={newVision.category}
+                  onChange={(e) => setNewVision(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 text-xs sm:text-sm"
+                >
+                  {visionCategories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Image URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={newVision.imageUrl}
+                  onChange={(e) => setNewVision(prev => ({ ...prev, imageUrl: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 text-xs sm:text-sm"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Estimated Time
+                  </label>
+                  <input
+                    type="text"
+                    value={newVision.estimatedTime}
+                    onChange={(e) => setNewVision(prev => ({ ...prev, estimatedTime: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 text-xs sm:text-sm"
+                    placeholder="e.g., 6 months"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Estimated Money
+                  </label>
+                  <input
+                    type="text"
+                    value={newVision.estimatedMoney}
+                    onChange={(e) => setNewVision(prev => ({ ...prev, estimatedMoney: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 text-xs sm:text-sm"
+                    placeholder="e.g., $5,000"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Priority
+                </label>
+                <select
+                  value={newVision.priority}
+                  onChange={(e) => setNewVision(prev => ({ ...prev, priority: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 text-xs sm:text-sm"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+
+              <div className="flex space-x-3 pt-3 sm:pt-4">
+                <button
+                  onClick={() => setShowVisionModal(false)}
+                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-gray-700 bg-gray-100 rounded-lg sm:rounded-xl hover:bg-gray-200 transition-colors text-xs sm:text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddVision}
+                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg sm:rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md transform hover:scale-105 text-xs sm:text-sm"
+                >
+                  Add Vision
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
+      {/* Add Goal Modal */}
       {showGoalModal && (
-        <GoalForm
-          onCancel={() => setShowGoalModal(false)}
-          onSubmit={handleGoalSubmit}
-        />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+              <h2 className="text-base sm:text-lg font-bold text-gray-800">Add New Goal</h2>
+              <button
+                onClick={() => setShowGoalModal(false)}
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg sm:rounded-xl transition-colors"
+              >
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Goal Title *
+                </label>
+                <input
+                  type="text"
+                  value={newGoal.title}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-xs sm:text-sm"
+                  placeholder="Enter goal title..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Description *
+                </label>
+                <textarea
+                  value={newGoal.description}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 resize-none text-xs sm:text-sm"
+                  placeholder="Describe your goal..."
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Related Vision
+                </label>
+                <select
+                  value={newGoal.visionTitle}
+                  onChange={(e) => setNewGoal(prev => ({ ...prev, visionTitle: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-xs sm:text-sm"
+                >
+                  {visionCategories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newGoal.startDate}
+                    onChange={(e) => setNewGoal(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-xs sm:text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={newGoal.endDate}
+                    onChange={(e) => setNewGoal(prev => ({ ...prev, endDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-xs sm:text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Amount Needed
+                  </label>
+                  <input
+                    type="text"
+                    value={newGoal.amountNeeded}
+                    onChange={(e) => setNewGoal(prev => ({ ...prev, amountNeeded: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-xs sm:text-sm"
+                    placeholder="e.g., $1,000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Priority
+                  </label>
+                  <select
+                    value={newGoal.priority}
+                    onChange={(e) => setNewGoal(prev => ({ ...prev, priority: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-xs sm:text-sm"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-3 sm:pt-4">
+                <button
+                  onClick={() => setShowGoalModal(false)}
+                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-gray-700 bg-gray-100 rounded-lg sm:rounded-xl hover:bg-gray-200 transition-colors text-xs sm:text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddGoal}
+                  className="flex-1 px-3 sm:px-4 py-1.5 sm:py-2 text-white bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md transform hover:scale-105 text-xs sm:text-sm"
+                >
+                  Add Goal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

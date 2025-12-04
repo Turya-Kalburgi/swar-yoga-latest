@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   DollarSign, 
   Download, 
@@ -14,7 +15,9 @@ import {
   Edit,
   Trash2,
   X,
-  Save
+  Save,
+  Globe,
+  ExternalLink
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { accountingAPI } from '../../utils/accountingData';
@@ -45,6 +48,7 @@ const AdminAccounting = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [currency, setCurrency] = useState('INR');
   const [dateRange, setDateRange] = useState({
     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0]
@@ -340,6 +344,21 @@ const AdminAccounting = () => {
     return `${day}/${month}/${year}`;
   };
 
+  // Get currency symbol
+  const getCurrencySymbol = () => {
+    const symbols: { [key: string]: string } = {
+      'INR': '₹',
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£',
+      'JPY': '¥',
+      'AUD': 'A$',
+      'CAD': 'C$',
+      'CHF': 'CHF'
+    };
+    return symbols[currency] || currency;
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -362,7 +381,37 @@ const AdminAccounting = () => {
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Accounting & Finance</h1>
             <p className="text-gray-600">Manage income, expenses, and financial reports</p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+            {/* Currency Selector */}
+            <div className="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-4 py-2">
+              <Globe className="h-5 w-5 text-gray-600" />
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="bg-transparent text-gray-800 font-medium focus:outline-none cursor-pointer"
+              >
+                <option value="INR">₹ INR</option>
+                <option value="USD">$ USD</option>
+                <option value="EUR">€ EUR</option>
+                <option value="GBP">£ GBP</option>
+                <option value="JPY">¥ JPY</option>
+                <option value="AUD">A$ AUD</option>
+                <option value="CAD">C$ CAD</option>
+                <option value="CHF">CHF CHF</option>
+              </select>
+            </div>
+
+            {/* Swar Calendar Link */}
+            <Link
+              to="/swar-calendar"
+              className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+              title="View Swar Calendar"
+            >
+              <Calendar className="h-5 w-5" />
+              <span>Swar Calendar</span>
+              <ExternalLink className="h-4 w-4" />
+            </Link>
+
             <button
               onClick={() => setShowCategoryModal(true)}
               className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -391,39 +440,6 @@ const AdminAccounting = () => {
           </div>
         </div>
 
-        {/* Debug Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-          <h3 className="font-semibold text-blue-800 mb-2">Debug Tools</h3>
-          <p className="text-sm text-blue-700 mb-3">
-            Use these tools to manage the accounting data for testing purposes:
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => accountingAPI.generateSampleData()}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-            >
-              Generate Sample Data
-            </button>
-            <button
-              onClick={() => {
-                accountingAPI.clearAllData();
-                loadData();
-                toast.success('All accounting data has been cleared');
-              }}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
-            >
-              Clear All Data
-            </button>
-            <button
-              onClick={loadData}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm flex items-center space-x-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              <span>Refresh Data</span>
-            </button>
-          </div>
-        </div>
-
         {/* Stats */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -433,7 +449,7 @@ const AdminAccounting = () => {
               </div>
               <TrendingUp className="h-5 w-5 text-green-500" />
             </div>
-            <div className="text-2xl font-bold text-green-600 mb-1">₹{totalIncome.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600 mb-1">{getCurrencySymbol()}{totalIncome.toLocaleString()}</div>
             <div className="text-gray-600 text-sm">Total Income</div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -443,7 +459,7 @@ const AdminAccounting = () => {
               </div>
               <TrendingUp className="h-5 w-5 text-red-500" />
             </div>
-            <div className="text-2xl font-bold text-red-600 mb-1">₹{totalExpenses.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-red-600 mb-1">{getCurrencySymbol()}{totalExpenses.toLocaleString()}</div>
             <div className="text-gray-600 text-sm">Total Expenses</div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -454,7 +470,7 @@ const AdminAccounting = () => {
               <TrendingUp className="h-5 w-5 text-blue-500" />
             </div>
             <div className={`text-2xl font-bold ${netIncome >= 0 ? 'text-green-600' : 'text-red-600'} mb-1`}>
-              ₹{netIncome.toLocaleString()}
+              {getCurrencySymbol()}{netIncome.toLocaleString()}
             </div>
             <div className="text-gray-600 text-sm">Net Income</div>
           </div>
@@ -530,7 +546,7 @@ const AdminAccounting = () => {
                     <span className="font-medium text-gray-800">{category.name}</span>
                     <div className="flex items-center space-x-2">
                       {category.budget && (
-                        <span className="text-sm text-gray-600">Budget: ₹{category.budget.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">Budget: {getCurrencySymbol()}{category.budget.toLocaleString()}</span>
                       )}
                       <button
                         onClick={() => editCategory(category)}
@@ -560,7 +576,7 @@ const AdminAccounting = () => {
                     <span className="font-medium text-gray-800">{category.name}</span>
                     <div className="flex items-center space-x-2">
                       {category.budget && (
-                        <span className="text-sm text-gray-600">Budget: ₹{category.budget.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">Budget: {getCurrencySymbol()}{category.budget.toLocaleString()}</span>
                       )}
                       <button
                         onClick={() => editCategory(category)}
@@ -631,7 +647,7 @@ const AdminAccounting = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <span className={getTypeColor(transaction.type)}>
-                        {transaction.type === 'income' ? '+' : '-'}₹{transaction.amount.toLocaleString()}
+                        {transaction.type === 'income' ? '+' : '-'}{getCurrencySymbol()}{transaction.amount.toLocaleString()}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

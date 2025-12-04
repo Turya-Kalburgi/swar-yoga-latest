@@ -17,6 +17,10 @@ import GoalForm from './GoalForm';
 
 const YearlyPlanner: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [editingVision, setEditingVision] = useState<any | null>(null);
+  const [editingGoal, setEditingGoal] = useState<any | null>(null);
+  const [editingTask, setEditingTask] = useState<any | null>(null);
+  const [editingTodo, setEditingTodo] = useState<any | null>(null);
 
   const navigateYear = (direction: 'prev' | 'next') => {
     setSelectedYear(prev => prev + (direction === 'next' ? 1 : -1));
@@ -59,6 +63,51 @@ const YearlyPlanner: React.FC = () => {
     load();
   }, [selectedYear]);
 
+  // Delete handlers
+  const handleDeleteVision = async (visionId: number) => {
+    if (!confirm('Delete this vision? This action cannot be undone.')) return;
+    try {
+      await visionAPI.delete(visionId);
+      setVisions(prev => prev.filter(v => v.id !== visionId));
+    } catch (err) {
+      console.error('Failed to delete vision', err);
+      alert('Could not delete vision — see console');
+    }
+  };
+
+  const handleDeleteGoal = async (goalId: number) => {
+    if (!confirm('Delete this goal? This action cannot be undone.')) return;
+    try {
+      await goalsAPI.delete(goalId);
+      setGoals(prev => prev.filter(g => g.id !== goalId));
+    } catch (err) {
+      console.error('Failed to delete goal', err);
+      alert('Could not delete goal — see console');
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    if (!confirm('Delete this task? This action cannot be undone.')) return;
+    try {
+      await tasksAPI.delete(taskId);
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+    } catch (err) {
+      console.error('Failed to delete task', err);
+      alert('Could not delete task — see console');
+    }
+  };
+
+  const handleDeleteTodo = async (todoId: number) => {
+    if (!confirm('Delete this todo? This action cannot be undone.')) return;
+    try {
+      await todosAPI.delete(todoId);
+      setTodos(prev => prev.filter(t => t.id !== todoId));
+    } catch (err) {
+      console.error('Failed to delete todo', err);
+      alert('Could not delete todo — see console');
+    }
+  };
+
   const VisionCard = ({ vision }: { vision: any }) => (
     <div className={`bg-white rounded-xl sm:rounded-2xl shadow-lg border ${vision.border} p-4 sm:p-8 hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
       {/* Vision Header */}
@@ -73,10 +122,18 @@ const YearlyPlanner: React.FC = () => {
           </div>
         </div>
         <div className="flex space-x-1 sm:space-x-2">
-          <button className="p-1 sm:p-2 text-gray-400 hover:text-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-110">
+          <button 
+            onClick={() => setEditingVision(vision)}
+            className="p-1 sm:p-2 text-gray-400 hover:text-blue-600 rounded-lg sm:rounded-xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-110"
+            title="Edit Vision"
+          >
             <Edit className="h-3 w-3 sm:h-5 sm:w-5" />
           </button>
-          <button className="p-1 sm:p-2 text-gray-400 hover:text-red-600 rounded-lg sm:rounded-xl hover:bg-red-50 transition-all duration-300 transform hover:scale-110">
+          <button 
+            onClick={() => handleDeleteVision(vision.id)}
+            className="p-1 sm:p-2 text-gray-400 hover:text-red-600 rounded-lg sm:rounded-xl hover:bg-red-50 transition-all duration-300 transform hover:scale-110"
+            title="Delete Vision"
+          >
             <Trash2 className="h-3 w-3 sm:h-5 sm:w-5" />
           </button>
         </div>
@@ -131,10 +188,18 @@ const YearlyPlanner: React.FC = () => {
                 <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">Due: {goal.deadline}</div>
               </div>
               <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
-                <button className="p-1 text-gray-400 hover:text-blue-600 rounded">
+                <button 
+                  onClick={() => setEditingGoal(goal)}
+                  className="p-1 text-gray-400 hover:text-blue-600 rounded"
+                  title="Edit Goal"
+                >
                   <Edit className="h-2 w-2 sm:h-3 sm:w-3" />
                 </button>
-                <button className="p-1 text-gray-400 hover:text-red-600 rounded">
+                <button 
+                  onClick={() => handleDeleteGoal(goal.id)}
+                  className="p-1 text-gray-400 hover:text-red-600 rounded"
+                  title="Delete Goal"
+                >
                   <Trash2 className="h-2 w-2 sm:h-3 sm:w-3" />
                 </button>
               </div>
@@ -175,10 +240,18 @@ const YearlyPlanner: React.FC = () => {
                 </span>
               </div>
               <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
-                <button className="p-1 text-gray-400 hover:text-blue-600 rounded">
+                <button 
+                  onClick={() => setEditingTask(task)}
+                  className="p-1 text-gray-400 hover:text-blue-600 rounded"
+                  title="Edit Task"
+                >
                   <Edit className="h-2 w-2 sm:h-3 sm:w-3" />
                 </button>
-                <button className="p-1 text-gray-400 hover:text-red-600 rounded">
+                <button 
+                  onClick={() => handleDeleteTask(task.id)}
+                  className="p-1 text-gray-400 hover:text-red-600 rounded"
+                  title="Delete Task"
+                >
                   <Trash2 className="h-2 w-2 sm:h-3 sm:w-3" />
                 </button>
               </div>
@@ -210,10 +283,18 @@ const YearlyPlanner: React.FC = () => {
                 {todo.text}
               </span>
               <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
-                <button className="p-1 text-gray-400 hover:text-blue-600 rounded">
+                <button 
+                  onClick={() => setEditingTodo(todo)}
+                  className="p-1 text-gray-400 hover:text-blue-600 rounded"
+                  title="Edit Todo"
+                >
                   <Edit className="h-2 w-2 sm:h-3 sm:w-3" />
                 </button>
-                <button className="p-1 text-gray-400 hover:text-red-600 rounded">
+                <button 
+                  onClick={() => handleDeleteTodo(todo.id)}
+                  className="p-1 text-gray-400 hover:text-red-600 rounded"
+                  title="Delete Todo"
+                >
                   <Trash2 className="h-2 w-2 sm:h-3 sm:w-3" />
                 </button>
               </div>
@@ -308,6 +389,42 @@ const YearlyPlanner: React.FC = () => {
               console.error('Failed to create goal', err);
             } finally {
               setShowGoalModal(false);
+            }
+          }}
+        />
+      )}
+
+      {/* Edit Vision Modal */}
+      {editingVision && (
+        <VisionForm
+          initialData={editingVision}
+          onCancel={() => setEditingVision(null)}
+          onSubmit={async (visionData) => {
+            try {
+              const updated = await visionAPI.update(editingVision.id, visionData);
+              setVisions(prev => prev.map(v => v.id === editingVision.id ? updated : v));
+              setEditingVision(null);
+            } catch (err) {
+              console.error('Failed to update vision', err);
+              alert('Could not update vision — see console');
+            }
+          }}
+        />
+      )}
+
+      {/* Edit Goal Modal */}
+      {editingGoal && (
+        <GoalForm
+          initialData={editingGoal}
+          onCancel={() => setEditingGoal(null)}
+          onSubmit={async (goalData) => {
+            try {
+              const updated = await goalsAPI.update(editingGoal.id, goalData);
+              setGoals(prev => prev.map(g => g.id === editingGoal.id ? updated : g));
+              setEditingGoal(null);
+            } catch (err) {
+              console.error('Failed to update goal', err);
+              alert('Could not update goal — see console');
             }
           }}
         />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { dailyWordsAPI, tasksAPI, todosAPI, visionAPI, healthAPI, goalsAPI } from '../utils/database';
+import { dailyWordsAPI, tasksAPI, todosAPI, visionAPI, healthAPI, goalsAPI, affirmationsAPI } from '../utils/database';
 import { Clock, Target, CheckSquare, Heart, Activity, Sparkles, Edit, Trash2, Plus, ChevronLeft, ChevronRight, Sun, Dumbbell, Coffee, Book, Radiation as Meditation, ShowerHead as Shower, Eye } from 'lucide-react';
 import VisionForm from './VisionForm';
 import GoalForm from './GoalForm';
@@ -7,6 +7,9 @@ import GoalForm from './GoalForm';
 const DailyPlanner: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showVisionPreview, setShowVisionPreview] = useState<number | null>(null);
+  const [editingVision, setEditingVision] = useState<any | null>(null);
+  const [editingGoal, setEditingGoal] = useState<any | null>(null);
+  const [affirmations, setAffirmations] = useState<any[]>([]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -52,12 +55,13 @@ const DailyPlanner: React.FC = () => {
     const load = async () => {
       const dateStr = selectedDate.toISOString().slice(0, 10);
       try {
-        const [vw, allTasks, allTodos, health, allGoals] = await Promise.all([
+        const [vw, allTasks, allTodos, health, allGoals, allAffirmations] = await Promise.all([
           visionAPI.getAll(selectedDate.getFullYear()),
           tasksAPI.getAll(),
           todosAPI.getAll(),
           healthAPI.getAll(dateStr),
-          goalsAPI.getAll(selectedDate.getFullYear())
+          goalsAPI.getAll(selectedDate.getFullYear()),
+          affirmationsAPI.getAll()
         ]);
 
         // visions may be general; keep them if returned
@@ -74,19 +78,25 @@ const DailyPlanner: React.FC = () => {
         // Map tasks/todos into sections where appropriate
         setGoals(tasksForDate.length ? tasksForDate : initialTodaysGoals);
 
-  const newSections = sections.map(section => {
+        const newSections = sections.map(section => {
           if (section.title === 'Task List') return { ...section, items: tasksForDate.length ? tasksForDate : section.items };
           if (section.title === "My To-Do's for Today") return { ...section, items: todosForDate.length ? todosForDate : section.items };
           if (section.title === 'Health Tracker') return { ...section, items: health && health.length ? health : section.items };
+          if (section.title === 'Affirmations') return { ...section, items: Array.isArray(allAffirmations) ? allAffirmations : section.items };
           return section;
         });
         setSectionsState(newSections);
 
-  const dw = await dailyWordsAPI.getAll(dateStr);
-  if (Array.isArray(dw) && dw.length) setDailyWords(dw);
-  // prefer goals that match the date if present
-  const goalsForDate = Array.isArray(allGoals) ? allGoals.filter((g: any) => g.date === dateStr || !g.date) : [];
-  if (goalsForDate.length) setGoals(goalsForDate);
+        const dw = await dailyWordsAPI.getAll(dateStr);
+        if (Array.isArray(dw) && dw.length) setDailyWords(dw);
+        
+        if (Array.isArray(allAffirmations)) {
+          setAffirmations(allAffirmations);
+        }
+        
+        // prefer goals that match the date if present
+        const goalsForDate = Array.isArray(allGoals) ? allGoals.filter((g: any) => g.date === dateStr || !g.date) : [];
+        if (goalsForDate.length) setGoals(goalsForDate);
       } catch (err) {
         // keep initial sample data on error
         console.warn('Failed to load daily planner data, using local samples', err);
@@ -125,6 +135,76 @@ const DailyPlanner: React.FC = () => {
     }
   };
 
+  const handleDeleteVision = async (visionId: number) => {
+    if (!confirm('Delete this vision? This action cannot be undone.')) return;
+    try {
+      await visionAPI.delete(visionId);
+      setVisions(prev => prev.filter(v => v.id !== visionId));
+      setShowVisionPreview(null);
+    } catch (err) {
+      console.error('Failed to delete vision', err);
+      alert('Could not delete vision — see console');
+    }
+  };
+
+  const handleDeleteGoal = async (goalId: number) => {
+    if (!confirm('Delete this goal? This action cannot be undone.')) return;
+    try {
+      await goalsAPI.delete(goalId);
+      setGoals(prev => prev.filter(g => g.id !== goalId));
+    } catch (err) {
+      console.error('Failed to delete goal', err);
+      alert('Could not delete goal — see console');
+    }
+  };
+
+  const handleDeleteSectionItem = async (itemType: string, itemId: number) => {
+    if (!confirm('Delete this item? This action cannot be undone.')) return;
+    try {
+      if (itemType === 'task') {
+        await tasksAPI.delete(itemId);
+      } else if (itemType === 'todo') {
+        await todosAPI.delete(itemId);
+      } else if (itemType === 'word') {
+        await dailyWordsAPI.delete(itemId);
+      } else if (itemType === 'health') {
+        await healthAPI.delete(itemId);
+      } else if (itemType === 'affirmation') {
+        await affirmationsAPI.delete(itemId);
+      }
+      
+      // Reload the section data
+      const dateStr = selectedDate.toISOString().slice(0, 10);
+      const [allTasks, allTodos, health, dw, allAffirmations] = await Promise.all([
+        tasksAPI.getAll(),
+        todosAPI.getAll(),
+        healthAPI.getAll(dateStr),
+        dailyWordsAPI.getAll(dateStr),
+        affirmationsAPI.getAll()
+      ]);
+      
+      const tasksForDate = Array.isArray(allTasks)
+        ? allTasks.filter((t: any) => t.date === dateStr || !t.date)
+        : [];
+      const todosForDate = Array.isArray(allTodos)
+        ? allTodos.filter((t: any) => t.date === dateStr || !t.date)
+        : [];
+
+      const newSections = sections.map(section => {
+        if (section.title === 'Task List') return { ...section, items: tasksForDate };
+        if (section.title === "My To-Do's for Today") return { ...section, items: todosForDate };
+        if (section.title === 'Health Tracker') return { ...section, items: health || [] };
+        if (section.title === 'Affirmations') return { ...section, items: allAffirmations || [] };
+        return section;
+      });
+      setSectionsState(newSections);
+      if (Array.isArray(dw) && dw.length) setDailyWords(dw);
+    } catch (err) {
+      console.error('Failed to delete item', err);
+      alert('Could not delete item — see console');
+    }
+  };
+
   const VisionCard = ({ vision }: { vision: any }) => (
     <div className={`bg-white rounded-2xl shadow-lg border ${vision.border} p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-102`}>
       <div className="flex items-center justify-between mb-4">
@@ -145,10 +225,18 @@ const DailyPlanner: React.FC = () => {
           >
             <Eye className="h-4 w-4" />
           </button>
-          <button className="p-1 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-105">
+          <button 
+            onClick={() => setEditingVision(vision)}
+            className="p-1 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-105"
+            title="Edit Vision"
+          >
             <Edit className="h-3 w-3" />
           </button>
-          <button className="p-1 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all duration-300 transform hover:scale-105">
+          <button 
+            onClick={() => handleDeleteVision(vision.id)}
+            className="p-1 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all duration-300 transform hover:scale-105"
+            title="Delete Vision"
+          >
             <Trash2 className="h-3 w-3" />
           </button>
         </div>
@@ -179,10 +267,10 @@ const DailyPlanner: React.FC = () => {
       
       <div className="flex-1">
         <p className={`text-sm font-medium ${goal.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
-          {goal.text}
+          {goal.text || goal.title}
         </p>
         <div className="flex items-center space-x-3 mt-1">
-          <span className="text-xs text-gray-500">{goal.deadline}</span>
+          <span className="text-xs text-gray-500">{goal.deadline || goal.date}</span>
           <span className="text-xs text-blue-600">{goal.category}</span>
           <span className={`px-2 py-1 text-xs rounded-full ${
             goal.priority === 'High' ? 'bg-red-100 text-red-700' :
@@ -195,10 +283,18 @@ const DailyPlanner: React.FC = () => {
       </div>
       
       <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
-        <button className="p-1 text-gray-400 hover:text-blue-600 rounded transition-all duration-300 transform hover:scale-105">
+        <button 
+          onClick={() => setEditingGoal(goal)}
+          className="p-1 text-gray-400 hover:text-blue-600 rounded transition-all duration-300 transform hover:scale-105"
+          title="Edit Goal"
+        >
           <Edit className="h-3 w-3" />
         </button>
-        <button className="p-1 text-gray-400 hover:text-red-600 rounded transition-all duration-300 transform hover:scale-105">
+        <button 
+          onClick={() => handleDeleteGoal(goal.id)}
+          className="p-1 text-gray-400 hover:text-red-600 rounded transition-all duration-300 transform hover:scale-105"
+          title="Delete Goal"
+        >
           <Trash2 className="h-3 w-3" />
         </button>
       </div>
@@ -220,48 +316,67 @@ const DailyPlanner: React.FC = () => {
       </div>
 
       <div className="space-y-3">
-        {section.items.map((item: any) => (
-          <div key={item.id} className={`group flex items-center space-x-4 p-4 ${section.bg} rounded-xl ${section.border} border hover:shadow-md transition-all duration-300 transform hover:scale-102`}>
-            <input
-              type="checkbox"
-              checked={item.completed}
-              className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 shadow-sm"
-            />
-            
-            <div className={`p-2 bg-white rounded-lg shadow-sm ${item.iconColor}`}>
-              <item.icon className="h-5 w-5" />
+        {section.items.map((item: any) => {
+          const itemType = section.title === 'Task List' ? 'task' : 
+                           section.title === "My To-Do's for Today" ? 'todo' :
+                           section.title === 'My Word (Integrity)' ? 'word' :
+                           section.title === 'Health Tracker' ? 'health' :
+                           section.title === 'Affirmations' ? 'affirmation' : 'item';
+          
+          return (
+            <div key={item.id} className={`group flex items-center space-x-4 p-4 ${section.bg} rounded-xl ${section.border} border hover:shadow-md transition-all duration-300 transform hover:scale-102`}>
+              <input
+                type="checkbox"
+                checked={item.completed || false}
+                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 shadow-sm"
+              />
+              
+              <div className={`p-2 bg-white rounded-lg shadow-sm ${item.iconColor}`}>
+                <item.icon className="h-5 w-5" />
+              </div>
+              
+              <div className="flex-1">
+                <p className={`text-sm font-medium ${item.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+                  {item.text || item.title}
+                </p>
+                {item.time && (
+                  <p className="text-xs text-gray-500 mt-1 font-medium">{item.time}</p>
+                )}
+                {item.current && (
+                  <p className="text-xs text-blue-600 mt-1 font-semibold">{item.current}</p>
+                )}
+                {item.priority && (
+                  <span className={`inline-block px-3 py-1 text-xs rounded-full mt-2 font-medium ${
+                    item.priority === 'High' ? 'bg-red-100 text-red-700' :
+                    item.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-green-100 text-green-700'
+                  }`}>
+                    {item.priority}
+                  </span>
+                )}
+              </div>
+              <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
+                <button 
+                  onClick={() => {
+                    if (itemType === 'task') setEditingGoal(item);
+                    // For other types, we'd need similar edit handlers
+                  }}
+                  className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-105"
+                  title="Edit"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+                <button 
+                  onClick={() => handleDeleteSectionItem(itemType, item.id)}
+                  className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all duration-300 transform hover:scale-105"
+                  title="Delete"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            
-            <div className="flex-1">
-              <p className={`text-sm font-medium ${item.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>
-                {item.text}
-              </p>
-              {item.time && (
-                <p className="text-xs text-gray-500 mt-1 font-medium">{item.time}</p>
-              )}
-              {item.current && (
-                <p className="text-xs text-blue-600 mt-1 font-semibold">{item.current}</p>
-              )}
-              {item.priority && (
-                <span className={`inline-block px-3 py-1 text-xs rounded-full mt-2 font-medium ${
-                  item.priority === 'High' ? 'bg-red-100 text-red-700' :
-                  item.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-green-100 text-green-700'
-                }`}>
-                  {item.priority}
-                </span>
-              )}
-            </div>
-            <div className="opacity-0 group-hover:opacity-100 flex space-x-1 transition-opacity">
-              <button className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-300 transform hover:scale-105">
-                <Edit className="h-4 w-4" />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all duration-300 transform hover:scale-105">
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -368,11 +483,51 @@ const DailyPlanner: React.FC = () => {
         />
       )}
 
+      {/* Edit Vision Modal (VisionForm) */}
+      {editingVision && (
+        <VisionForm
+          initialData={editingVision}
+          onCancel={() => {
+            setEditingVision(null);
+            setShowVisionPreview(null);
+          }}
+          onSubmit={async (visionData) => {
+            try {
+              const updated = await visionAPI.update(editingVision.id, visionData);
+              setVisions(prev => prev.map(v => v.id === editingVision.id ? updated : v));
+              setEditingVision(null);
+              setShowVisionPreview(null);
+            } catch (err) {
+              console.error('Failed to update vision', err);
+              alert('Could not update vision — see console');
+            }
+          }}
+        />
+      )}
+
       {/* Add Goal Modal (GoalForm) */}
       {showAddGoalModal && (
         <GoalForm
           onCancel={() => setShowAddGoalModal(false)}
           onSubmit={handleGoalSubmit}
+        />
+      )}
+
+      {/* Edit Goal Modal (GoalForm) */}
+      {editingGoal && (
+        <GoalForm
+          initialData={editingGoal}
+          onCancel={() => setEditingGoal(null)}
+          onSubmit={async (goalData) => {
+            try {
+              const updated = await goalsAPI.update(editingGoal.id, goalData);
+              setGoals(prev => prev.map(g => g.id === editingGoal.id ? updated : g));
+              setEditingGoal(null);
+            } catch (err) {
+              console.error('Failed to update goal', err);
+              alert('Could not update goal — see console');
+            }
+          }}
         />
       )}
       {showVisionPreview && selectedVision && (
@@ -389,10 +544,18 @@ const DailyPlanner: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <button className="p-2 text-gray-400 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-110">
+                <button 
+                  onClick={() => setEditingVision(selectedVision)}
+                  className="p-2 text-gray-400 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-110"
+                  title="Edit Vision"
+                >
                   <Edit className="h-5 w-5" />
                 </button>
-                <button className="p-2 text-gray-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-all duration-300 transform hover:scale-110">
+                <button 
+                  onClick={() => handleDeleteVision(selectedVision.id)}
+                  className="p-2 text-gray-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-all duration-300 transform hover:scale-110"
+                  title="Delete Vision"
+                >
                   <Trash2 className="h-5 w-5" />
                 </button>
                 <button

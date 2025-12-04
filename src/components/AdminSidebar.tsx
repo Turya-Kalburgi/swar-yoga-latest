@@ -9,7 +9,8 @@ import {
   MessageSquare, 
   DollarSign,
   Award,
-  Home
+  Home,
+  BookOpen
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -28,7 +29,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false, onItemCli
     { id: 'cart-data', name: 'Cart Data', icon: ShoppingCart, path: '/admin/cart-data', color: 'orange' },
     { id: 'contact-data', name: 'Contact Data', icon: MessageSquare, path: '/admin/contact-data', color: 'pink' },
     { id: 'accounting', name: 'Accounting', icon: DollarSign, path: '/admin/accounting', color: 'yellow' },
-    { id: 'certificates', name: 'Certificates', icon: Award, path: '/admin/certificates', color: 'red' }
+    { id: 'certificates', name: 'Certificates', icon: Award, path: '/admin/certificates', color: 'red' },
+    { id: 'life-planner', name: 'Life Planner', icon: BookOpen, path: '/life-planner', color: 'teal' }
   ];
 
   const isActive = (path: string) => {
@@ -47,7 +49,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false, onItemCli
       orange: active ? 'bg-orange-600 text-white' : 'text-orange-600 hover:bg-orange-50',
       pink: active ? 'bg-pink-600 text-white' : 'text-pink-600 hover:bg-pink-50',
       yellow: active ? 'bg-yellow-600 text-white' : 'text-yellow-600 hover:bg-yellow-50',
-      red: active ? 'bg-red-600 text-white' : 'text-red-600 hover:bg-red-50'
+      red: active ? 'bg-red-600 text-white' : 'text-red-600 hover:bg-red-50',
+      teal: active ? 'bg-teal-600 text-white' : 'text-teal-600 hover:bg-teal-50'
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
