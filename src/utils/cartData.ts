@@ -26,6 +26,7 @@ export interface CartItem {
   paymentLinkINR?: string;
   paymentLinkNPR?: string;
   paymentLinkUSD?: string;
+  whatsappGroupLink?: string;
 }
 
 // Get cart items from localStorage or initialize

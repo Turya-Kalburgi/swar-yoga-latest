@@ -29,6 +29,7 @@ export interface WorkshopBatch {
   paymentLinkINR?: string;
   paymentLinkNPR?: string;
   paymentLinkUSD?: string;
+  whatsappGroupLink?: string;
   prerequisites?: string;
   learningOutcomes?: string;
   includedItems?: string;

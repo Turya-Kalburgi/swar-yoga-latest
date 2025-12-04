@@ -33,6 +33,7 @@ interface CartItem {
   paymentLinkINR?: string;
   paymentLinkNPR?: string;
   paymentLinkUSD?: string;
+  whatsappGroupLink?: string;
 }
 
 const CheckoutPage = () => {
@@ -159,7 +160,8 @@ const CheckoutPage = () => {
           instructor: firstItem.instructor,
           price: getPrice(firstItem),
           currency: currency,
-          image: firstItem.image
+          image: firstItem.image,
+          whatsappGroupLink: firstItem.whatsappGroupLink || ''
         }));
         
         // Redirect to payment URL based on currency

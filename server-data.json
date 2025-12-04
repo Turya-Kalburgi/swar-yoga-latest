@@ -1,14 +1,39 @@
 {
-  "users": [
-    {
-      "id": "1764778330222",
-      "email": "test.user@example.com",
-      "password": "mohan123",
-      "name": "Test User",
-      "isNewUser": true
-    }
-  ],
   "workshops": [
+    {
+      "title": "Test Advanced Pranayama - Complete Tutorial (Updated Pricing)",
+      "instructor": "Mohan Kalburgi",
+      "startDate": "2025-12-20",
+      "endDate": "2025-12-25",
+      "duration": "6 Days",
+      "startTime": "09:00",
+      "endTime": "17:00",
+      "priceINR": 4500,
+      "priceNPR": 7200,
+      "priceUSD": 54,
+      "maxParticipants": 30,
+      "category": "12 Days Pranayama Workshop",
+      "mode": "Online",
+      "language": "Hindi",
+      "level": "Intermediate",
+      "location": "Zoom",
+      "image": "https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=400",
+      "paymentLinkINR": "https://payu.example.com/workshop",
+      "paymentLinkNPR": "https://esewa.example.com/workshop",
+      "paymentLinkUSD": "https://paypal.example.com/workshop",
+      "prerequisites": "Basic yoga knowledge recommended",
+      "learningOutcomes": "Master advanced pranayama techniques, Improve breath control, Learn meditation integration",
+      "includedItems": "Video recordings, PDF materials, Certificate, 30 days support",
+      "remarks": "CORRECTED - Price updated based on feedback",
+      "isPublic": true,
+      "id": "1764852865008",
+      "enrolledCount": 0,
+      "rating": 4.5,
+      "created_at": "2025-12-04T12:54:25.008Z",
+      "updated_at": "2025-12-04T13:21:34.923Z",
+      "youtubeId": "",
+      "whatsappGroupLink": ""
+    },
     {
       "id": "1",
       "title": "Basic Swar Yoga Master Class",
@@ -72,126 +97,5 @@
       "created_at": "2025-01-01T00:00:00.000Z",
       "updated_at": "2025-01-01T00:00:00.000Z"
     }
-  ],
-  "visions": [
-    {
-      "id": 1764762077488,
-      "title": "Automated Test Vision",
-      "description": "Created by automated test",
-      "image": "",
-      "progress": 0,
-      "priority": "Medium",
-      "date": "2025-12-03",
-      "year": 2025
-    },
-    {
-      "id": 1764783636097,
-      "title": "Test Vision from AI",
-      "description": "Created during debugging",
-      "startDate": "2025-12-03",
-      "endDate": "2026-01-01",
-      "priority": "high",
-      "estimatedTime": 10
-    },
-    {
-      "id": 1764783769279,
-      "title": "UI Test Vision 2025-12-03",
-      "description": "UI test created by assistant",
-      "startDate": "2025-12-03",
-      "endDate": "2026-01-01",
-      "priority": "High",
-      "estimatedTime": 5
-    },
-    {
-      "id": 1764784950012,
-      "title": "Nested Test Vision",
-      "description": "Nested flow test",
-      "startDate": "2025-12-03",
-      "endDate": "2026-06-01",
-      "priority": "High",
-      "estimatedTime": 12,
-      "milestones": [
-        {
-          "name": "M1"
-        },
-        {
-          "name": "M2"
-        }
-      ]
-    }
-  ],
-  "goals": [
-    {
-      "id": 1764783775655,
-      "title": "UI Test Goal",
-      "description": "Goal with milestones",
-      "startDate": "2025-12-04",
-      "endDate": "2026-02-01",
-      "milestones": [
-        {
-          "name": "Milestone A",
-          "startDate": "2025-12-05",
-          "endDate": "2026-01-05",
-          "budget": 100
-        },
-        {
-          "name": "Milestone B",
-          "startDate": "2026-01-06",
-          "endDate": "2026-01-20",
-          "budget": 200
-        }
-      ]
-    },
-    {
-      "id": 1764785010450,
-      "title": "Goal for vision 1764784950012",
-      "visionId": 1764784950012,
-      "description": "Goal nested under vision",
-      "milestones": [
-        {
-          "name": "M1"
-        }
-      ]
-    }
-  ],
-  "tasks": [
-    {
-      "id": 1764783781702,
-      "title": "UI Test Task",
-      "description": "Task for UI test",
-      "dueDate": "2025-12-10"
-    },
-    {
-      "id": 1764785030925,
-      "title": "Task for goal 1764785010450",
-      "goalId": 1764785010450,
-      "dueDate": "2025-12-10"
-    }
-  ],
-  "todos": [
-    {
-      "id": 1764783786924,
-      "title": "UI Test Todo",
-      "note": "Todo for UI test",
-      "date": "2025-12-10"
-    },
-    {
-      "id": 1764785040640,
-      "title": "Todo for goal 1764785010450",
-      "goalId": 1764785010450,
-      "date": "2025-12-10"
-    }
-  ],
-  "dailyWords": [
-    {
-      "id": 1764785056659,
-      "text": "Focus",
-      "date": "2025-12-04",
-      "visionId": 1764784950012
-    }
-  ],
-  "health": [],
-  "routines": [],
-  "people": [],
-  "affirmations": []
+  ]
 }

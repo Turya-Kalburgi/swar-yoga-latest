@@ -10,6 +10,7 @@ interface PurchasedWorkshop {
   price: number;
   currency: string;
   image: string;
+  whatsappGroupLink?: string;
 }
 
 const ThankYouPage = () => {
@@ -65,15 +66,22 @@ const ThankYouPage = () => {
                     {getCurrencySymbol(workshop.currency)}{workshop.price}
                   </p>
                   <div className="flex flex-wrap gap-4">
-                    <a 
-                      href="https://chat.whatsapp.com/JCIaRLYYLGVKVScHnWJT9L" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      <span>Join WhatsApp Group</span>
-                    </a>
+                    {workshop.whatsappGroupLink ? (
+                      <a 
+                        href={workshop.whatsappGroupLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        <span>Join WhatsApp Group</span>
+                      </a>
+                    ) : (
+                      <div className="inline-flex items-center space-x-2 bg-gray-200 text-gray-600 px-4 py-2 rounded-lg">
+                        <MessageSquare className="h-4 w-4" />
+                        <span>WhatsApp group link coming soon</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

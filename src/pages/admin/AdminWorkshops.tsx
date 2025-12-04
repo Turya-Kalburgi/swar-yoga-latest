@@ -60,6 +60,7 @@ const AdminWorkshops = () => {
     paymentLinkINR: '',
     paymentLinkNPR: '',
     paymentLinkUSD: '',
+    whatsappGroupLink: '',
     prerequisites: '',
     learningOutcomes: '',
     includedItems: '',
@@ -259,6 +260,7 @@ const AdminWorkshops = () => {
       paymentLinkINR: '',
       paymentLinkNPR: '',
       paymentLinkUSD: '',
+      whatsappGroupLink: '',
       prerequisites: '',
       learningOutcomes: '',
       includedItems: '',
@@ -291,6 +293,7 @@ const AdminWorkshops = () => {
       paymentLinkINR: workshop.paymentLinkINR,
       paymentLinkNPR: workshop.paymentLinkNPR,
       paymentLinkUSD: workshop.paymentLinkUSD,
+      whatsappGroupLink: workshop.whatsappGroupLink || '',
       prerequisites: workshop.prerequisites,
       learningOutcomes: workshop.learningOutcomes,
       includedItems: workshop.includedItems,
@@ -1050,6 +1053,23 @@ const AdminWorkshops = () => {
                     <div className="text-xs text-gray-500 mt-1">
                       PayPal payment URL for international customers
                     </div>
+                  </div>
+                </div>
+
+                {/* WhatsApp Group Link */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    WhatsApp Group Link 💬
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.whatsappGroupLink}
+                    onChange={(e) => setFormData(prev => ({ ...prev, whatsappGroupLink: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="https://chat.whatsapp.com/..."
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    WhatsApp group link that will be shared with customers on the thank you page after they purchase this workshop
                   </div>
                 </div>
 

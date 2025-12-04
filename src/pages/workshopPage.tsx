@@ -162,7 +162,8 @@ const WorkshopPage = () => {
         currency: 'INR', // Default to INR
         paymentLinkINR: workshop.paymentLinkINR,
         paymentLinkNPR: workshop.paymentLinkNPR,
-        paymentLinkUSD: workshop.paymentLinkUSD
+        paymentLinkUSD: workshop.paymentLinkUSD,
+        whatsappGroupLink: workshop.whatsappGroupLink
       };
       
       await cartAPI.addToCart(cartItem);
