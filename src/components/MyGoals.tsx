@@ -9,6 +9,8 @@ const MyGoals: React.FC = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddGoal, setShowAddGoal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<any>(null);
+  const [viewingGoal, setViewingGoal] = useState<any>(null);
 
   const handleGoalSubmit = async (goalData: any) => {
     try {
@@ -220,10 +222,16 @@ const MyGoals: React.FC = () => {
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <div className="flex flex-wrap gap-2">
-                  <button className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm">
+                  <button 
+                    onClick={() => setViewingGoal(goal)}
+                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                  >
                     View Tasks
                   </button>
-                  <button className="px-4 py-2 bg-gray-100  text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">
+                  <button 
+                    onClick={() => setEditingGoal(goal)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                  >
                     <Edit className="h-4 w-4 inline mr-1" />
                     Edit Goal
                   </button>
@@ -235,7 +243,21 @@ const MyGoals: React.FC = () => {
                       goal.priority === 'Medium' ? 'text-yellow-600' : 'text-green-600'
                     }`}>{goal.priority}</span>
                   </div>
-                  <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
+                  <button 
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to delete this goal?')) {
+                        try {
+                          await goalsAPI.delete(goal.id);
+                          setGoals(prev => prev.filter(g => g.id !== goal.id));
+                        } catch (err) {
+                          console.error('Failed to delete goal', err);
+                          alert('Could not delete goal — see console');
+                        }
+                      }
+                    }}
+                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                    title="Delete Goal"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -255,6 +277,99 @@ const MyGoals: React.FC = () => {
         <GoalForm
           onCancel={() => setShowAddGoal(false)}
           onSubmit={handleGoalSubmit}
+        />
+      )}
+
+      {/* View Goal Modal */}
+      {viewingGoal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">{viewingGoal.title}</h2>
+                <button 
+                  onClick={() => setViewingGoal(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {viewingGoal.imageUrl && (
+                <img 
+                  src={viewingGoal.imageUrl} 
+                  alt={viewingGoal.title}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+              )}
+              
+              <p className="text-gray-600 mb-4">{viewingGoal.description}</p>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                <div>
+                  <span className="font-semibold text-gray-700">Status:</span>
+                  <span className="ml-2">{viewingGoal.status}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">Priority:</span>
+                  <span className="ml-2">{viewingGoal.priority}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">Progress:</span>
+                  <span className="ml-2">{viewingGoal.progress}%</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">Vision:</span>
+                  <span className="ml-2">{viewingGoal.visionTitle}</span>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-700 mb-2">Task Progress:</h3>
+                <p className="text-gray-600">{viewingGoal.completedTasks} of {viewingGoal.tasks} tasks completed</p>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${viewingGoal.progress}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => { setViewingGoal(null); setEditingGoal(viewingGoal); }}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Edit
+                </button>
+                <button 
+                  onClick={() => setViewingGoal(null)}
+                  className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Goal Modal */}
+      {editingGoal && (
+        <GoalForm
+          initialData={editingGoal}
+          onCancel={() => setEditingGoal(null)}
+          onSubmit={async (goalData: any) => {
+            try {
+              await goalsAPI.update(editingGoal.id, goalData);
+              const data = await goalsAPI.getAll();
+              setGoals(data || []);
+              setEditingGoal(null);
+            } catch (err) {
+              console.error('Failed to update goal', err);
+              alert('Could not update goal — see console');
+            }
+          }}
         />
       )}
     </div>
