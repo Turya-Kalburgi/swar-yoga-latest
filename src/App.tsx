@@ -3,6 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useState, useEffect } from 'react';
 import usePageStatePersistence from './hooks/usePageStatePersistence';
+import { clearDummyData } from './utils/clearDummyData';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -69,6 +70,9 @@ function App() {
   const [pageRestored, setPageRestored] = useState(false);
 
   useEffect(() => {
+    // Clean up any dummy/sample data on app mount
+    clearDummyData();
+    
     // Restore last visited page on app mount
     const restorePage = async () => {
       const restored = await restoreLastPage();

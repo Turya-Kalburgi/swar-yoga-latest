@@ -9,13 +9,16 @@ import {
   UserPlus,
   LogIn,
   Eye,
-  BarChart3
+  BarChart3,
+  Trash2
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { userAPI } from '../../utils/userData';
 import { workshopAPI } from '../../utils/workshopData';
 import { cartAPI } from '../../utils/cartData';
 import { contactAPI } from '../../utils/contactData';
+import { clearDummyData } from '../../utils/clearDummyData';
+import { toast } from 'react-toastify';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -34,6 +37,18 @@ const AdminDashboard = () => {
   useEffect(() => {
     loadDashboardStats();
   }, []);
+
+  const handleClearDummyData = () => {
+    try {
+      clearDummyData();
+      toast.success('✅ All dummy data cleared successfully');
+      // Reload dashboard stats
+      loadDashboardStats();
+    } catch (error) {
+      toast.error('Failed to clear dummy data');
+      console.error(error);
+    }
+  };
 
   const loadDashboardStats = async () => {
     try {
@@ -314,6 +329,16 @@ const AdminDashboard = () => {
                 <button className="w-full text-left p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
                   <div className="font-medium text-purple-800">Send Newsletter</div>
                   <div className="text-xs text-purple-600">Email all users</div>
+                </button>
+                <button 
+                  onClick={handleClearDummyData}
+                  className="w-full text-left p-3 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Trash2 size={18} className="text-red-600" />
+                  <div>
+                    <div className="font-medium text-red-800">Clear Dummy Data</div>
+                    <div className="text-xs text-red-600">Remove all test data from storage</div>
+                  </div>
                 </button>
               </div>
             </div>
