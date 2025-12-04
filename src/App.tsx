@@ -85,15 +85,15 @@ function App() {
                   <Route path="/signin" element={<><Header /><SignInPage /><Footer /></>} />
                   <Route path="/signup" element={<><Header /><SignUpPage /><Footer /></>} />
                   <Route path="/account" element={<><Header /><UserAccount /><Footer /></>} />
-                  <Route path="/admin" element={<ProtectedAdminRoute><><Header /><AdminDashboard /><Footer /></></ProtectedAdminRoute>} />
-                  <Route path="/admin/workshops" element={<ProtectedAdminRoute><><Header /><AdminWorkshops /><Footer /></></ProtectedAdminRoute>} />
-                  <Route path="/admin/signup-data" element={<ProtectedAdminRoute><><Header /><AdminSignupData /><Footer /></></ProtectedAdminRoute>} />
-                  <Route path="/admin/signin-data" element={<ProtectedAdminRoute><><Header /><AdminSigninData /><Footer /></></ProtectedAdminRoute>} />
-                  <Route path="/admin/cart-data" element={<ProtectedAdminRoute><><Header /><AdminCartData /><Footer /></></ProtectedAdminRoute>} />
-                  <Route path="/admin/contact-data" element={<ProtectedAdminRoute><><Header /><AdminContactData /><Footer /></></ProtectedAdminRoute>} />
-                  <Route path="/admin/accounting" element={<ProtectedAdminRoute><><Header /><AdminAccounting /><Footer /></></ProtectedAdminRoute>} />
-                  <Route path="/admin/certificates" element={<ProtectedAdminRoute><><Header /><CertificateCreator /><Footer /></></ProtectedAdminRoute>} />
-                  <Route path="/accounting" element={<ProtectedAdminRoute><><Header /><AdminAccounting /><Footer /></></ProtectedAdminRoute>} />
+                  <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+                  <Route path="/admin/workshops" element={<ProtectedAdminRoute><AdminWorkshops /></ProtectedAdminRoute>} />
+                  <Route path="/admin/signup-data" element={<ProtectedAdminRoute><AdminSignupData /></ProtectedAdminRoute>} />
+                  <Route path="/admin/signin-data" element={<ProtectedAdminRoute><AdminSigninData /></ProtectedAdminRoute>} />
+                  <Route path="/admin/cart-data" element={<ProtectedAdminRoute><AdminCartData /></ProtectedAdminRoute>} />
+                  <Route path="/admin/contact-data" element={<ProtectedAdminRoute><AdminContactData /></ProtectedAdminRoute>} />
+                  <Route path="/admin/accounting" element={<ProtectedAdminRoute><AdminAccounting /></ProtectedAdminRoute>} />
+                  <Route path="/admin/certificates" element={<ProtectedAdminRoute><CertificateCreator /></ProtectedAdminRoute>} />
+                  <Route path="/accounting" element={<ProtectedAdminRoute><AdminAccounting /></ProtectedAdminRoute>} />
                   <Route path="/life-planner" element={<><Header /><LifePlanner /><Footer /></>} />
                   <Route path="/swar-calendar" element={<><Header /><SwarCalendar /><Footer /></>} />
                   <Route path="/vision-board/daily" element={<><Header /><DailyPlanner /><Footer /></>} />

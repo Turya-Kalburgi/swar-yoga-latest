@@ -16,25 +16,13 @@ interface AdminLayoutProps {
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default to true since parent already protects
 
-  // Check authentication on mount
+  // Quick re-check but don't redirect (parent handles that)
   useEffect(() => {
     const user = localStorage.getItem('adminUser');
-    if (user) {
-      try {
-        JSON.parse(user);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error('Error parsing admin user:', error);
-        setIsAuthenticated(false);
-        navigate('/admin');
-      }
-    } else {
-      setIsAuthenticated(false);
-      navigate('/admin');
-    }
-  }, [navigate]);
+    setIsAuthenticated(!!user);
+  }, []);
 
   const handleLogout = () => {
     if (confirm('Are you sure you want to sign out?')) {
@@ -45,7 +33,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   };
 
   if (!isAuthenticated) {
-    return null; // Don't render anything if not authenticated
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Authenticating...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
