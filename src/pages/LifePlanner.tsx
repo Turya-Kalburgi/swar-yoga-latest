@@ -458,7 +458,7 @@ const LifePlanner = () => {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 p-3 sm:p-6 overflow-x-auto">
+        <main className="flex-1 p-2 sm:p-4 lg:p-6 overflow-x-auto">
           {renderMainContent()}
         </main>
       </div>

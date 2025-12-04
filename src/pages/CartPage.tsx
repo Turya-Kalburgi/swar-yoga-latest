@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Calendar, Clock, MapPin } from 'lucide-react';
+import { ShoppingCart, Trash2, Plus, Minus, ArrowRight, Calendar, Clock, MapPin, Gift } from 'lucide-react';
 // Header and Footer are provided by App routes; removed local imports to avoid duplicate rendering
 import { cartAPI } from '../utils/cartData';
 import type { CartItem } from '../utils/cartData';
@@ -12,8 +12,16 @@ const CartPage = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFirstTimeCart, setIsFirstTimeCart] = useState(false);
 
   useEffect(() => {
+    // Check if this is the user's first time viewing the cart
+    const hasViewedCart = localStorage.getItem('swaryoga_cart_viewed');
+    if (!hasViewedCart) {
+      setIsFirstTimeCart(true);
+      localStorage.setItem('swaryoga_cart_viewed', 'true');
+    }
+    
     loadCartItems();
   }, [user]);
 
@@ -145,6 +153,39 @@ const CartPage = () => {
   {/* Header provided by App layout */}
 
   <div className="container mx-auto max-w-6xl px-6 py-16">
+        {/* Welcome Banner for New Users */}
+        {isFirstTimeCart && (
+          <div className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+            <div className="flex items-start space-x-4">
+              <Gift className="h-8 w-8 text-green-600 flex-shrink-0 mt-1" />
+              <div>
+                <h2 className="text-2xl font-bold text-green-800 mb-2">Welcome to Your Cart! 🎉</h2>
+                <p className="text-green-700 mb-4">
+                  You're just a few clicks away from enrolling in amazing workshops! Browse our collection, add workshops to your cart, and proceed to checkout when ready.
+                </p>
+                <div className="grid grid-cols-2 gap-4 text-sm text-green-700">
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">1</span>
+                    <span>Browse workshops</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">2</span>
+                    <span>Add to cart</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">3</span>
+                    <span>Review cart</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">4</span>
+                    <span>Complete checkout</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center space-x-3 mb-8">
           <ShoppingCart className="h-8 w-8 text-green-600" />
           <h1 className="text-3xl font-bold text-gray-800">Shopping Cart</h1>

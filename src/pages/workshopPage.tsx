@@ -1,11 +1,74 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Users, Filter, Search, Star, Play, DollarSign, Globe, RefreshCw, ShoppingCart, ArrowRight, ExternalLink } from 'lucide-react';
-// Header and Footer are provided by App routes; removed local imports to avoid duplicate rendering
-import { getPublicWorkshops, type WorkshopBatch as Workshop } from '../utils/workshopAPI';
 import { cartAPI } from '../utils/cartData';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+
+// Define Workshop type locally
+export interface Workshop {
+  id: string;
+  title: string;
+  instructor: string;
+  startDate: string;
+  endDate: string;
+  duration: string;
+  startTime: string;
+  endTime: string;
+  priceINR: number;
+  priceNPR: number;
+  priceUSD: number;
+  maxParticipants: number;
+  enrolledCount?: number;
+  category: string;
+  mode: string;
+  language: string;
+  level: string;
+  location: string;
+  image?: string;
+  youtubeId?: string;
+  description?: string;
+  paymentLinkINR?: string;
+  paymentLinkNPR?: string;
+  paymentLinkUSD?: string;
+  whatsappGroupLink?: string;
+  prerequisites?: string;
+  learningOutcomes?: string;
+  includedItems?: string;
+  remarks?: string;
+  rating?: number;
+}
+
+// LOCAL WORKSHOPS DATA - ADD YOUR WORKSHOPS HERE
+const LOCAL_WORKSHOPS: Workshop[] = [
+  {
+    id: '1',
+    title: 'Beginner Swar Yoga',
+    instructor: 'Yogacharya Mohan Kalburgi',
+    startDate: '2025-12-15',
+    endDate: '2025-12-20',
+    duration: '6 days',
+    startTime: '09:00',
+    endTime: '17:00',
+    priceINR: 5000,
+    priceNPR: 7000,
+    priceUSD: 70,
+    maxParticipants: 50,
+    category: 'Beginner',
+    mode: 'Online',
+    language: 'Hindi',
+    level: 'Beginner',
+    location: 'Online',
+    image: '/logo with mohan sir.png',
+    youtubeId: 'dQw4w9WgXcQ',
+    description: 'Learn the fundamentals of Swar Yoga and breathing techniques',
+    paymentLinkINR: 'https://your-payment-link-inr.com',
+    paymentLinkNPR: 'https://your-payment-link-npr.com',
+    paymentLinkUSD: 'https://your-payment-link-usd.com',
+    whatsappGroupLink: 'https://chat.whatsapp.com/your-group-link'
+  },
+  // ADD MORE WORKSHOPS HERE
+];
 
 const WorkshopPage = () => {
   const { user } = useAuth();
@@ -25,19 +88,17 @@ const WorkshopPage = () => {
   const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
 
-  // Load workshops from the API
+  // Load workshops from LOCAL DATA
   const loadWorkshops = async (showRefreshing = false) => {
     try {
       if (showRefreshing) setRefreshing(true);
       else setLoading(true);
       
-      console.log('🔄 === LOADING WORKSHOPS FOR PUBLIC PAGE ===');
+      console.log('🔄 === LOADING WORKSHOPS FROM LOCAL DATA ===');
+      console.log('📋 Workshops available:', LOCAL_WORKSHOPS);
       
-      const publicWorkshops = await getPublicWorkshops();
-      console.log('📋 Final result - workshops to display:', publicWorkshops);
-      
-      setWorkshops(publicWorkshops);
-      setFilteredWorkshops(publicWorkshops);
+      setWorkshops(LOCAL_WORKSHOPS);
+      setFilteredWorkshops(LOCAL_WORKSHOPS);
       setLastRefreshTime(new Date());
       
       console.log('🔄 === LOADING COMPLETE ===');

@@ -17,6 +17,7 @@ import GoalForm from './GoalForm';
 
 const YearlyPlanner: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [carouselMonth, setCarouselMonth] = useState(new Date().getMonth());
   const [editingVision, setEditingVision] = useState<any | null>(null);
   const [editingGoal, setEditingGoal] = useState<any | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
@@ -360,6 +361,133 @@ const YearlyPlanner: React.FC = () => {
           <Plus className="h-4 w-4 sm:h-6 sm:w-6" />
           <span className="font-medium sm:font-semibold">Add New Vision</span>
         </button>
+      </div>
+
+      {/* 3-Month Carousel Slider */}
+      <div className="mb-8 sm:mb-12">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">Monthly Overview</h2>
+        <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth" style={{ scrollBehavior: 'smooth' }}>
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((monthOffset) => {
+              const displayMonth = (carouselMonth + monthOffset) % 12;
+              const displayYear = selectedYear + Math.floor((carouselMonth + monthOffset) / 12);
+              const monthDate = new Date(displayYear, displayMonth, 1);
+              const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+              
+              // Get items for this month
+              const monthStart = new Date(displayYear, displayMonth, 1);
+              const monthEnd = new Date(displayYear, displayMonth + 1, 0);
+              
+              const monthVisions = visions.filter(v => {
+                if (!v.date) return false;
+                const vDate = new Date(v.date);
+                return vDate >= monthStart && vDate <= monthEnd;
+              });
+              
+              const monthGoals = goals.filter(g => {
+                if (!g.date) return false;
+                const gDate = new Date(g.date);
+                return gDate >= monthStart && gDate <= monthEnd;
+              });
+              
+              const monthTasks = tasks.filter(t => {
+                if (!t.date) return false;
+                const tDate = new Date(t.date);
+                return tDate >= monthStart && tDate <= monthEnd;
+              });
+              
+              const monthTodos = todos.filter(t => {
+                if (!t.date) return false;
+                const tDate = new Date(t.date);
+                return tDate >= monthStart && tDate <= monthEnd;
+              });
+
+              return (
+                <div
+                  key={monthOffset}
+                  className="min-w-full sm:min-w-[calc(50%-1rem)] lg:min-w-[calc(33.333%-1rem)] snap-center p-4 sm:p-6 flex-shrink-0"
+                >
+                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg border-2 border-indigo-200 p-4 sm:p-6 h-full">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">{monthName}</h3>
+                    
+                    {/* Visions summary */}
+                    {monthVisions.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Eye className="h-4 w-4 text-purple-600" />
+                          <span className="text-sm font-semibold text-gray-700">Visions: {monthVisions.length}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {monthVisions.slice(0, 3).map(v => (
+                            <p key={v.id} className="text-xs text-purple-700 truncate">• {v.title}</p>
+                          ))}
+                          {monthVisions.length > 3 && <p className="text-xs text-gray-500">+ {monthVisions.length - 3} more</p>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Goals summary */}
+                    {monthGoals.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Target className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-semibold text-gray-700">Goals: {monthGoals.length}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {monthGoals.slice(0, 3).map(g => (
+                            <p key={g.id} className="text-xs text-blue-700 truncate">• {g.title || g.text}</p>
+                          ))}
+                          {monthGoals.length > 3 && <p className="text-xs text-gray-500">+ {monthGoals.length - 3} more</p>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tasks summary */}
+                    {monthTasks.length > 0 && (
+                      <div className="mb-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <CheckSquare className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-semibold text-gray-700">Tasks: {monthTasks.length}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {monthTasks.slice(0, 3).map(t => (
+                            <p key={t.id} className="text-xs text-green-700 truncate">• {t.title || t.text}</p>
+                          ))}
+                          {monthTasks.length > 3 && <p className="text-xs text-gray-500">+ {monthTasks.length - 3} more</p>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Todos summary */}
+                    {monthTodos.length > 0 && (
+                      <div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <CheckSquare className="h-4 w-4 text-cyan-600" />
+                          <span className="text-sm font-semibold text-gray-700">To-dos: {monthTodos.length}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {monthTodos.slice(0, 3).map(t => (
+                            <p key={t.id} className="text-xs text-cyan-700 truncate">• {t.title || t.text}</p>
+                          ))}
+                          {monthTodos.length > 3 && <p className="text-xs text-gray-500">+ {monthTodos.length - 3} more</p>}
+                        </div>
+                      </div>
+                    )}
+
+                    {monthVisions.length === 0 && monthGoals.length === 0 && monthTasks.length === 0 && monthTodos.length === 0 && (
+                      <p className="text-sm text-gray-500 italic">No items for this month</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Carousel Navigation Info */}
+          <div className="hidden lg:block absolute bottom-0 right-0 p-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs rounded-tl-lg">
+            Scroll → to see more months
+          </div>
+        </div>
       </div>
 
       {showVisionModal && (

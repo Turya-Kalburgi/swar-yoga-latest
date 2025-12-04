@@ -20,7 +20,6 @@ import SignUpPage from './pages/SignUpPage';
 import UserAccount from './pages/UserAccount';
 import AdminSignIn from './pages/AdminSignIn';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminWorkshops from './pages/admin/AdminWorkshops';
 import AdminSignupData from './pages/admin/AdminSignupData';
 import AdminSigninData from './pages/admin/AdminSigninData';
 import AdminCartData from './pages/admin/AdminCartData';
@@ -86,7 +85,6 @@ function App() {
                   <Route path="/signup" element={<><Header /><SignUpPage /><Footer /></>} />
                   <Route path="/account" element={<><Header /><UserAccount /><Footer /></>} />
                   <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-                  <Route path="/admin/workshops" element={<ProtectedAdminRoute><AdminWorkshops /></ProtectedAdminRoute>} />
                   <Route path="/admin/signup-data" element={<ProtectedAdminRoute><AdminSignupData /></ProtectedAdminRoute>} />
                   <Route path="/admin/signin-data" element={<ProtectedAdminRoute><AdminSigninData /></ProtectedAdminRoute>} />
                   <Route path="/admin/cart-data" element={<ProtectedAdminRoute><AdminCartData /></ProtectedAdminRoute>} />

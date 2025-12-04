@@ -20,6 +20,8 @@ interface CartContextType {
   clearCart: () => void;
   getCartTotal: () => number;
   getCartCount: () => number;
+  isFirstTimeCart: boolean;
+  markCartAsViewed: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -38,16 +40,24 @@ interface CartProviderProps {
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isFirstTimeCart, setIsFirstTimeCart] = useState(true);
 
   // Load cart from localStorage on mount
   useEffect(() => {
     const savedCart = localStorage.getItem('swaryoga_cart');
+    const hasViewedCart = localStorage.getItem('swaryoga_cart_viewed');
+    
     if (savedCart) {
       try {
         setCartItems(JSON.parse(savedCart));
       } catch (error) {
         console.error('Error loading cart from localStorage:', error);
       }
+    }
+    
+    // Check if user has viewed cart before
+    if (hasViewedCart === 'true') {
+      setIsFirstTimeCart(false);
     }
   }, []);
 
@@ -101,6 +111,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     toast.info('Cart has been cleared');
   };
 
+  const markCartAsViewed = () => {
+    localStorage.setItem('swaryoga_cart_viewed', 'true');
+    setIsFirstTimeCart(false);
+  };
+
   const getCartTotal = () => {
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
@@ -117,7 +132,9 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       updateQuantity,
       clearCart,
       getCartTotal,
-      getCartCount
+      getCartCount,
+      isFirstTimeCart,
+      markCartAsViewed
     }}>
       {children}
     </CartContext.Provider>

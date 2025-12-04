@@ -2,6 +2,20 @@ import axios from 'axios';
 
 const API_BASE_URL = 'https://swar-yoga-dec.onrender.com/api';
 
+// Get current user ID from localStorage
+function getCurrentUserId(): string | null {
+  try {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      return user.id || null;
+    }
+  } catch (e) {
+    console.warn('Could not retrieve user ID from localStorage', e);
+  }
+  return null;
+}
+
 // Create axios instance with timeout and retry logic
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -9,6 +23,25 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Add request interceptor to add userId to all requests
+apiClient.interceptors.request.use((config) => {
+  const userId = getCurrentUserId();
+  if (userId) {
+    config.headers['X-User-ID'] = userId;
+    // Also add to query params for GET requests
+    if (config.method === 'get') {
+      config.params = config.params || {};
+      config.params.userId = userId;
+    } else {
+      // Add to body for POST/PUT requests
+      if (typeof config.data === 'object' && config.data !== null) {
+        config.data.userId = userId;
+      }
+    }
+  }
+  return config;
 });
 
 // Add response interceptor for error handling

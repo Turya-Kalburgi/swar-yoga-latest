@@ -10,13 +10,15 @@ import {
   Trash2,
   Plus,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 import VisionForm from './VisionForm';
 import GoalForm from './GoalForm';
 
 const WeeklyPlanner: React.FC = () => {
   const [selectedWeek, setSelectedWeek] = useState(new Date());
+  const [selectedDayDate, setSelectedDayDate] = useState<Date | null>(null);
   const [editingVision, setEditingVision] = useState<any | null>(null);
   const [editingGoal, setEditingGoal] = useState<any | null>(null);
   const [editingTask, setEditingTask] = useState<any | null>(null);
@@ -423,6 +425,7 @@ const WeeklyPlanner: React.FC = () => {
             return (
               <div
                 key={index}
+                onClick={() => setSelectedDayDate(date)}
                 className={`p-2 sm:p-4 rounded-lg text-center transition-all duration-300 transform hover:scale-105 cursor-pointer ${
                   isToday
                     ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-md'
@@ -592,6 +595,108 @@ const WeeklyPlanner: React.FC = () => {
                     setNewTitle(''); setNewDate(new Date().toISOString().slice(0,10)); setNewPriority('Medium');
                   }
                 }} className="px-3 py-2 bg-blue-600 text-white rounded">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Day Details Popup Modal */}
+      {selectedDayDate && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-green-500 text-white p-4 sm:p-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg sm:text-2xl font-bold">{selectedDayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h2>
+                <p className="text-xs sm:text-sm text-blue-100 mt-1">{selectedDayDate.getFullYear()}</p>
+              </div>
+              <button onClick={() => setSelectedDayDate(null)} className="p-2 hover:bg-white/20 rounded-lg transition-all">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-6">
+              {/* Goals for this day */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                  <span>Goals</span>
+                </h3>
+                {goals.filter(g => g.date && new Date(g.date).toDateString() === selectedDayDate.toDateString()).length > 0 ? (
+                  <div className="space-y-2">
+                    {goals.filter(g => g.date && new Date(g.date).toDateString() === selectedDayDate.toDateString()).map(goal => (
+                      <div key={goal.id} className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <input type="checkbox" checked={goal.completed} className="w-4 h-4 text-blue-600" />
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${goal.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>{goal.title || goal.text}</p>
+                          <p className="text-xs text-gray-500 mt-1">{goal.category}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No goals for this day</p>
+                )}
+              </div>
+
+              {/* Tasks for this day */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <CheckSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                  <span>Tasks</span>
+                </h3>
+                {tasks.filter(t => t.date && new Date(t.date).toDateString() === selectedDayDate.toDateString()).length > 0 ? (
+                  <div className="space-y-2">
+                    {tasks.filter(t => t.date && new Date(t.date).toDateString() === selectedDayDate.toDateString()).map(task => (
+                      <div key={task.id} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <input type="checkbox" checked={task.completed} className="w-4 h-4 text-green-600" />
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>{task.title || task.text}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                              task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>{task.priority}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No tasks for this day</p>
+                )}
+              </div>
+
+              {/* To-Dos for this day */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <CheckSquare className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" />
+                  <span>To-Dos</span>
+                </h3>
+                {todos.filter(t => t.date && new Date(t.date).toDateString() === selectedDayDate.toDateString()).length > 0 ? (
+                  <div className="space-y-2">
+                    {todos.filter(t => t.date && new Date(t.date).toDateString() === selectedDayDate.toDateString()).map(todo => (
+                      <div key={todo.id} className="flex items-center space-x-3 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
+                        <input type="checkbox" checked={todo.completed} className="w-4 h-4 text-cyan-600" />
+                        <p className={`flex-1 text-sm font-medium ${todo.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>{todo.title || todo.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No to-dos for this day</p>
+                )}
+              </div>
+
+              {/* My Word for this day */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                  <span>My Word</span>
+                </h3>
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-sm font-medium text-gray-700 italic">"Your integrity word for this day"</p>
+                </div>
               </div>
             </div>
           </div>

@@ -21,158 +21,167 @@ interface SignInData {
   userAgent: string;
 }
 
-// Get signup data from localStorage or initialize
-const getSignUpData = (): any[] => {
+// Get signup data from backend API
+const getSignUpData = async (): Promise<any[]> => {
   try {
-    const data = localStorage.getItem('signup_data');
-    return data ? JSON.parse(data) : [];
+    const response = await fetch('/api/admin/signup-data');
+    if (!response.ok) throw new Error('Failed to fetch signup data');
+    return await response.json();
   } catch (error) {
-    console.error('Error getting signup data:', error);
-    return [];
+    console.error('Error fetching signup data from backend:', error);
+    // Fallback to localStorage
+    try {
+      const data = localStorage.getItem('signup_data');
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error('Error getting signup data from localStorage:', e);
+      return [];
+    }
   }
 };
 
-// Save signup data to localStorage
-const saveSignUpData = (data: any[]) => {
-  localStorage.setItem('signup_data', JSON.stringify(data));
-};
-
-// Get signin data from localStorage or initialize
-const getSignInData = (): any[] => {
+// Get signin data from backend API
+const getSignInData = async (): Promise<any[]> => {
   try {
-    const data = localStorage.getItem('signin_data');
-    return data ? JSON.parse(data) : [];
+    const response = await fetch('/api/admin/signin-data');
+    if (!response.ok) throw new Error('Failed to fetch signin data');
+    return await response.json();
   } catch (error) {
-    console.error('Error getting signin data:', error);
-    return [];
+    console.error('Error fetching signin data from backend:', error);
+    // Fallback to localStorage
+    try {
+      const data = localStorage.getItem('signin_data');
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error('Error getting signin data from localStorage:', e);
+      return [];
+    }
   }
 };
 
-// Save signin data to localStorage
-const saveSignInData = (data: any[]) => {
-  localStorage.setItem('signin_data', JSON.stringify(data));
-};
+// Sample data removed - using real data from backend API only
 
-// Sample data removed - using real data from localStorage only
-
-// Initialize auth data if empty (no dummy data)
-const initializeAuthData = () => {
-  // Just ensure data exists in localStorage, don't add dummy data
-  const signupData = getSignUpData();
-  if (!Array.isArray(signupData)) {
-    saveSignUpData([]);
-  }
-  
-  const signinData = getSignInData();
-  if (!Array.isArray(signinData)) {
-    saveSignInData([]);
+// Initialize auth data if empty
+const initializeAuthData = async () => {
+  // Data is now managed by the backend, no need for local initialization
+  try {
+    await getSignUpData();
+    await getSignInData();
+  } catch (error) {
+    console.error('Error initializing auth data:', error);
   }
 };
 
 // Auth API methods
 export const authAPI = {
-  // Get signup data
+  // Get signup data from backend
   getSignUpData: async (): Promise<any[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        initializeAuthData();
-        const data = getSignUpData();
-        resolve(data);
-      }, 500);
-    });
+    return getSignUpData();
   },
   
-  // Get signin data
+  // Get signin data from backend
   getSignInData: async (): Promise<any[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        initializeAuthData();
-        const data = getSignInData();
-        resolve(data);
-      }, 500);
-    });
+    return getSignInData();
   },
   
   // Record a new signup
   recordSignUp: async (userData: SignUpData): Promise<any> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const data = getSignUpData();
-        
-        const newUser = {
-          id: Date.now(),
-          ...userData,
-          registrationDate: new Date().toISOString(),
-          status: 'active'
-        };
-        
-        data.push(newUser);
-        saveSignUpData(data);
-        resolve(newUser);
-      }, 500);
-    });
+    try {
+      const response = await fetch('/api/auth/record-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      if (!response.ok) throw new Error('Failed to record signup');
+      return await response.json();
+    } catch (error) {
+      console.error('Error recording signup:', error);
+      // Fallback to localStorage
+      const data = JSON.parse(localStorage.getItem('signup_data') || '[]');
+      const newUser = {
+        id: Date.now(),
+        ...userData,
+        registrationDate: new Date().toISOString(),
+        status: 'active'
+      };
+      data.push(newUser);
+      localStorage.setItem('signup_data', JSON.stringify(data));
+      return newUser;
+    }
   },
   
   // Record a new signin
   recordSignIn: async (signinData: SignInData): Promise<any> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const data = getSignInData();
-        
-        const newSignin = {
-          id: Date.now(),
-          email: signinData.email,
-          timestamp: new Date().toISOString(),
-          ip: signinData.ipAddress,
-          device: signinData.userAgent,
-          status: signinData.success ? 'success' : 'failed'
-        };
-        
-        data.push(newSignin);
-        saveSignInData(data);
-        resolve(newSignin);
-      }, 500);
-    });
+    try {
+      const response = await fetch('/api/auth/record-signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signinData)
+      });
+      if (!response.ok) throw new Error('Failed to record signin');
+      return await response.json();
+    } catch (error) {
+      console.error('Error recording signin:', error);
+      // Fallback to localStorage
+      const data = JSON.parse(localStorage.getItem('signin_data') || '[]');
+      const newSignin = {
+        id: Date.now(),
+        email: signinData.email,
+        timestamp: new Date().toISOString(),
+        ip: signinData.ipAddress,
+        device: signinData.userAgent,
+        status: signinData.success ? 'success' : 'failed'
+      };
+      data.push(newSignin);
+      localStorage.setItem('signin_data', JSON.stringify(data));
+      return newSignin;
+    }
   },
   
   // Add user manually (for admin)
   addUserManually: async (userData: Omit<SignUpData, 'source'>): Promise<any> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const data = getSignUpData();
-        
-        const newUser = {
-          id: Date.now(),
-          ...userData,
-          registrationDate: new Date().toISOString(),
-          status: 'active',
-          source: 'manual'
-        };
-        
-        data.push(newUser);
-        saveSignUpData(data);
-        resolve(newUser);
-      }, 500);
-    });
+    try {
+      const response = await fetch('/api/auth/record-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...userData, source: 'manual' })
+      });
+      if (!response.ok) throw new Error('Failed to add user');
+      return await response.json();
+    } catch (error) {
+      console.error('Error adding user:', error);
+      // Fallback to localStorage
+      const data = JSON.parse(localStorage.getItem('signup_data') || '[]');
+      const newUser = {
+        id: Date.now(),
+        ...userData,
+        registrationDate: new Date().toISOString(),
+        status: 'active',
+        source: 'manual'
+      };
+      data.push(newUser);
+      localStorage.setItem('signup_data', JSON.stringify(data));
+      return newUser;
+    }
   },
   
   // Clear signup data (for testing)
   clearSignUpData: async (): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        saveSignUpData([]);
-        resolve();
-      }, 500);
-    });
+    try {
+      // Backend doesn't have a clear endpoint yet, using localStorage
+      localStorage.setItem('signup_data', JSON.stringify([]));
+    } catch (error) {
+      console.error('Error clearing signup data:', error);
+    }
   },
   
   // Clear signin data (for testing)
   clearSignInData: async (): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        saveSignInData([]);
-        resolve();
-      }, 500);
-    });
+    try {
+      // Backend doesn't have a clear endpoint yet, using localStorage
+      localStorage.setItem('signin_data', JSON.stringify([]));
+    } catch (error) {
+      console.error('Error clearing signin data:', error);
+    }
   }
 };

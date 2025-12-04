@@ -47,62 +47,7 @@ const saveCartItems = (items: CartItem[]) => {
 
 // Generate sample cart items for demo
 const generateSampleCartItems = (): CartItem[] => {
-  return [
-    {
-      id: 1,
-      userId: 'sample',
-      userName: 'Sample User',
-      userEmail: 'sample@example.com',
-      workshopId: 1,
-      workshopTitle: 'Basic Swar Yoga Master Class',
-      instructor: 'Mohan Kalburgi',
-      startDate: '2025-05-15',
-      endDate: '2025-05-17',
-      duration: '3 Days',
-      startTime: '09:00',
-      endTime: '17:00',
-      mode: 'Online',
-      location: 'Zoom',
-      image: 'https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&w=400',
-      priceINR: 5000,
-      priceNPR: 8000,
-      priceUSD: 60,
-      quantity: 1,
-      currency: 'INR',
-      addedAt: new Date().toISOString(),
-      status: 'active',
-      paymentLinkINR: 'https://example.com/pay/inr',
-      paymentLinkNPR: 'https://example.com/pay/npr',
-      paymentLinkUSD: 'https://example.com/pay/usd'
-    },
-    {
-      id: 2,
-      userId: 'sample',
-      userName: 'Sample User',
-      userEmail: 'sample@example.com',
-      workshopId: 2,
-      workshopTitle: '90 Days Weight Loss Program',
-      instructor: 'Mohan Kalburgi',
-      startDate: '2025-06-01',
-      endDate: '2025-08-30',
-      duration: '90 Days',
-      startTime: '07:00',
-      endTime: '08:00',
-      mode: 'Hybrid',
-      location: 'Delhi',
-      image: 'https://images.pexels.com/photos/4056535/pexels-photo-4056535.jpeg?auto=compress&cs=tinysrgb&w=400',
-      priceINR: 15000,
-      priceNPR: 24000,
-      priceUSD: 180,
-      quantity: 1,
-      currency: 'INR',
-      addedAt: new Date().toISOString(),
-      status: 'active',
-      paymentLinkINR: 'https://example.com/pay/inr',
-      paymentLinkNPR: 'https://example.com/pay/npr',
-      paymentLinkUSD: 'https://example.com/pay/usd'
-    }
-  ];
+  return []; // No sample data - only real user data
 };
 
 // Initialize cart data if empty

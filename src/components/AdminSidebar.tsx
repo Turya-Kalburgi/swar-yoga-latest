@@ -1,8 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
+import {
   LayoutDashboard, 
-  Calendar, 
   LogIn, 
   UserPlus, 
   ShoppingCart, 
@@ -23,7 +22,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobile = false, onItemCli
 
   const navigationItems = [
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, path: '/admin', color: 'blue' },
-    { id: 'workshops', name: 'Workshops', icon: Calendar, path: '/admin/workshops', color: 'green' },
     { id: 'signup-data', name: 'Signup Data', icon: UserPlus, path: '/admin/signup-data', color: 'purple' },
     { id: 'signin-data', name: 'Signin Data', icon: LogIn, path: '/admin/signin-data', color: 'indigo' },
     { id: 'cart-data', name: 'Cart Data', icon: ShoppingCart, path: '/admin/cart-data', color: 'orange' },

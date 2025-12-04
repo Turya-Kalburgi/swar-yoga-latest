@@ -11,7 +11,8 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  X
 } from 'lucide-react';
 import VisionForm from './VisionForm';
 import GoalForm from './GoalForm';
@@ -181,13 +182,17 @@ const MonthlyPlanner: React.FC = () => {
     const hasItems = items.visions.length > 0 || items.goals.length > 0 || items.tasks.length > 0 || items.todos.length > 0;
 
     return (
-      <div className={`min-h-24 p-2 border ${isToday ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200'} hover:bg-gray-50 transition-colors`}>
+      <div 
+        onClick={() => setSelectedDate(new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), dayNum))}
+        className={`min-h-24 p-2 border cursor-pointer transition-all transform hover:scale-102 ${isToday ? 'bg-blue-50 border-blue-300' : 'bg-white border-gray-200'} hover:bg-gray-50`}
+      >
         <div className="flex items-center justify-between mb-1">
           <span className={`text-sm font-bold ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
             {dayNum}
           </span>
           <button 
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setSelectedDate(new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), dayNum));
               setShowAddModal(true);
             }}
@@ -386,6 +391,133 @@ const MonthlyPlanner: React.FC = () => {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Date Details Popup Modal */}
+      {selectedDate && !showAddModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 sm:p-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg sm:text-2xl font-bold">{selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h2>
+                <p className="text-xs sm:text-sm text-orange-100 mt-1">{selectedDate.getFullYear()}</p>
+              </div>
+              <button onClick={() => setSelectedDate(null)} className="p-2 hover:bg-white/20 rounded-lg transition-all">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-6">
+              {/* Visions for this date */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                  <span>Visions</span>
+                </h3>
+                {goals.filter(g => g.date && new Date(g.date).toDateString() === selectedDate.toDateString()).length > 0 ? (
+                  <div className="space-y-2">
+                    {goals.filter(g => g.date && new Date(g.date).toDateString() === selectedDate.toDateString()).map(goal => (
+                      <div key={goal.id} className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                        <div className="p-1.5 bg-gradient-to-r from-purple-400 to-purple-600 rounded text-white">
+                          <Eye className="h-3 w-3" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-700">{goal.title || goal.text}</p>
+                          <p className="text-xs text-gray-500 mt-1">{goal.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No visions for this date</p>
+                )}
+              </div>
+
+              {/* Goals for this date */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                  <span>Goals</span>
+                </h3>
+                {goals.filter(g => g.date && new Date(g.date).toDateString() === selectedDate.toDateString()).length > 0 ? (
+                  <div className="space-y-2">
+                    {goals.filter(g => g.date && new Date(g.date).toDateString() === selectedDate.toDateString()).map(goal => (
+                      <div key={goal.id} className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <input type="checkbox" checked={goal.completed} className="w-4 h-4 text-blue-600" />
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${goal.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>{goal.title || goal.text}</p>
+                          <p className="text-xs text-gray-500 mt-1">{goal.category}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No goals for this date</p>
+                )}
+              </div>
+
+              {/* Tasks for this date */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <CheckSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                  <span>Tasks</span>
+                </h3>
+                {tasks.filter(t => t.date && new Date(t.date).toDateString() === selectedDate.toDateString()).length > 0 ? (
+                  <div className="space-y-2">
+                    {tasks.filter(t => t.date && new Date(t.date).toDateString() === selectedDate.toDateString()).map(task => (
+                      <div key={task.id} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <input type="checkbox" checked={task.completed} className="w-4 h-4 text-green-600" />
+                        <div className="flex-1">
+                          <p className={`text-sm font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>{task.title || task.text}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                              task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>{task.priority}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No tasks for this date</p>
+                )}
+              </div>
+
+              {/* To-Dos for this date */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <CheckSquare className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" />
+                  <span>To-Dos</span>
+                </h3>
+                {todos.filter(t => t.date && new Date(t.date).toDateString() === selectedDate.toDateString()).length > 0 ? (
+                  <div className="space-y-2">
+                    {todos.filter(t => t.date && new Date(t.date).toDateString() === selectedDate.toDateString()).map(todo => (
+                      <div key={todo.id} className="flex items-center space-x-3 p-3 bg-cyan-50 rounded-lg border border-cyan-200">
+                        <input type="checkbox" checked={todo.completed} className="w-4 h-4 text-cyan-600" />
+                        <p className={`flex-1 text-sm font-medium ${todo.completed ? 'line-through text-gray-500' : 'text-gray-700'}`}>{todo.title || todo.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">No to-dos for this date</p>
+                )}
+              </div>
+
+              {/* My Word for this date */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                  <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+                  <span>My Word</span>
+                </h3>
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <p className="text-sm font-medium text-gray-700 italic">"Your integrity word for this date"</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
