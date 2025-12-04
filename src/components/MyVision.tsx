@@ -33,6 +33,9 @@ const MyVision: React.FC = () => {
   const [estimatedTime, setEstimatedTime] = useState('1h');
   const [estimatedMoney, setEstimatedMoney] = useState('0');
   const [guidelinesInput, setGuidelinesInput] = useState('');
+  // Edit state
+  const [editingVision, setEditingVision] = useState<any>(null);
+  const [viewingVision, setViewingVision] = useState<any>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -252,6 +255,101 @@ const MyVision: React.FC = () => {
         />
       )}
 
+      {/* View Vision Modal */}
+      {viewingVision && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-gray-800">{viewingVision.title}</h2>
+                <button 
+                  onClick={() => setViewingVision(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {viewingVision.image && (
+                <img 
+                  src={viewingVision.image} 
+                  alt={viewingVision.title}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+              )}
+              
+              <p className="text-gray-600 mb-4">{viewingVision.description}</p>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                <div>
+                  <span className="font-semibold text-gray-700">Status:</span>
+                  <span className="ml-2">{viewingVision.status}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">Priority:</span>
+                  <span className="ml-2">{viewingVision.priority}</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">Progress:</span>
+                  <span className="ml-2">{viewingVision.progress}%</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-gray-700">Estimated Time:</span>
+                  <span className="ml-2">{viewingVision.estimatedTime}</span>
+                </div>
+              </div>
+
+              {viewingVision.guidelines && viewingVision.guidelines.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="font-semibold text-gray-700 mb-2">Guidelines:</h3>
+                  <ul className="list-disc list-inside space-y-1">
+                    {viewingVision.guidelines.map((g: string, i: number) => (
+                      <li key={i} className="text-gray-600 text-sm">{g}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => { setViewingVision(null); setEditingVision(viewingVision); }}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Edit
+                </button>
+                <button 
+                  onClick={() => setViewingVision(null)}
+                  className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Vision Modal */}
+      {editingVision && (
+        <VisionForm
+          initialData={editingVision}
+          onCancel={() => setEditingVision(null)}
+          onSubmit={async (visionData: any) => {
+            setIsSaving(true);
+            try {
+              await visionAPI.update(editingVision.id, visionData);
+              const data = await visionAPI.getAll();
+              setVisions(data || []);
+              setEditingVision(null);
+            } catch (err) {
+              console.error('Failed to update vision', err);
+            } finally {
+              setIsSaving(false);
+            }
+          }}
+        />
+      )}
+
       {/* Vision Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {visions.map(vision => (
@@ -278,16 +376,41 @@ const MyVision: React.FC = () => {
               <div className="flex items-start justify-between mb-3">
                 <h3 className="text-lg font-bold text-gray-800">{vision.title}</h3>
                 <div className="flex space-x-1">
-                  <button className="p-1 text-gray-400 hover:text-blue-600 rounded">
+                  <button 
+                    onClick={() => setViewingVision(vision)}
+                    className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                    title="View"
+                  >
                     <Eye className="h-4 w-4" />
                   </button>
-                  <button className="p-1 text-gray-400 hover:text-blue-600 rounded">
+                  <button 
+                    onClick={() => setEditingVision(vision)}
+                    className="p-1 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                    title="Edit"
+                  >
                     <Edit className="h-4 w-4" />
                   </button>
-                  <button className="p-1 text-gray-400 hover:text-green-600 rounded" title="Add Goal" onClick={() => { setGoalParentVisionId(vision.id); setShowGoalModal(true); }}>
+                  <button 
+                    className="p-1 text-gray-400 hover:text-green-600 rounded transition-colors" 
+                    title="Add Goal" 
+                    onClick={() => { setGoalParentVisionId(vision.id); setShowGoalModal(true); }}
+                  >
                     <Plus className="h-4 w-4" />
                   </button>
-                  <button className="p-1 text-gray-400 hover:text-red-600 rounded">
+                  <button 
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to delete this vision?')) {
+                        try {
+                          await visionAPI.delete(vision.id);
+                          setVisions(prev => prev.filter(v => v.id !== vision.id));
+                        } catch (err) {
+                          console.error('Failed to delete vision', err);
+                        }
+                      }
+                    }}
+                    className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
+                    title="Delete"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
