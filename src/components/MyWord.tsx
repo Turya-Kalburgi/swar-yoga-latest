@@ -16,7 +16,7 @@ interface WordEntry {
   word: string;
   commitment: string;
   date: string;
-  timeframe: 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
+  timeframe: 'Once' | 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
   completed: boolean;
   completedAt?: string;
   reflection?: string;
@@ -412,6 +412,7 @@ const MyWord: React.FC = () => {
                     onChange={(e) => setNewEntry(prev => ({ ...prev, timeframe: e.target.value as any }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
                   >
+                    <option value="Once">Once</option>
                     <option value="Daily">Daily</option>
                     <option value="Weekly">Weekly</option>
                     <option value="Monthly">Monthly</option>
