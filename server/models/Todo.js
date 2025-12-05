@@ -1,32 +1,85 @@
 import mongoose from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
 
 const todoSchema = new mongoose.Schema(
   {
-    _id: { type: String, default: () => uuidv4() },
-    userId: { type: String, required: true, index: true },
-    title: { type: String, required: true },
-    particulars: { type: String, required: true },
-    linkedTaskId: { type: String, default: '' },
-    linkedTaskTitle: { type: String, default: '' },
-    date: { type: Date, default: Date.now },
-    time: { type: String, default: '' },
-    status: { type: String, enum: ['Pending', 'In Progress', 'Completed', 'Cancelled'], default: 'Pending' },
-    priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
-    completed: { type: Boolean, default: false },
-    completedAt: { type: Date },
-    category: { type: String, default: 'General' },
+    userId: {
+      type: String,
+      required: true,
+      index: true
+    },
+    title: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    description: {
+      type: String,
+      default: ''
+    },
+    completed: {
+      type: Boolean,
+      default: false
+    },
+    dueDate: {
+      type: String,
+      default: ''
+    },
+    dueTime: {
+      type: String,
+      default: ''
+    },
+    priority: {
+      type: String,
+      enum: ['Low', 'Medium', 'High'],
+      default: 'Medium'
+    },
+    category: {
+      type: String,
+      default: 'Personal'
+    },
+    reminder: {
+      type: Boolean,
+      default: false
+    },
+    reminderTime: {
+      type: String,
+      default: ''
+    },
+    linkedTaskId: {
+      type: String,
+      default: ''
+    },
+    linkedTaskTitle: {
+      type: String,
+      default: ''
+    },
     tags: [String],
-    notes: { type: String, default: '' },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
+    status: {
+      type: String,
+      enum: ['Pending', 'In Progress', 'Completed', 'Cancelled'],
+      default: 'Pending'
+    },
+    completedAt: {
+      type: Date,
+      default: null
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    }
   },
-  { _id: false }
+  { timestamps: true }
 );
 
+// Indexes for efficient querying
 todoSchema.index({ userId: 1, createdAt: -1 });
-todoSchema.index({ linkedTaskId: 1 });
-todoSchema.index({ date: 1 });
+todoSchema.index({ userId: 1, completed: 1 });
+todoSchema.index({ userId: 1, dueDate: 1 });
+todoSchema.index({ userId: 1, priority: 1 });
 
 const Todo = mongoose.model('Todo', todoSchema);
 

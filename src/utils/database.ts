@@ -184,13 +184,14 @@ export const goalsAPI = {
 
 // ===== TASKS API =====
 export const tasksAPI = {
-  getAll: async (year?: number) => {
+  getAll: async (userId?: string | number) => {
     try {
-      const params = year ? { year } : {};
-      const response = await apiClient.get('/tasks', { params });
+      const uid = userId || getCurrentUserId();
+      if (!uid) return [];
+      const response = await apiClient.get(`/tasks/${uid}`);
       return response.data || [];
     } catch (error) {
-      console.error('Error fetching tasks:', error);
+      console.error('❌ Error fetching tasks:', error);
       return [];
     }
   },
@@ -234,48 +235,75 @@ export const tasksAPI = {
 
 // ===== TODOS API =====
 export const todosAPI = {
-  getAll: async (year?: number) => {
+  getAll: async (userId?: string) => {
     try {
-      const params = year ? { year } : {};
-      const response = await apiClient.get('/todos', { params });
+      const uid = userId || getCurrentUserId();
+      if (!uid) return [];
+      const response = await apiClient.get(`/todos/${uid}`);
       return response.data || [];
     } catch (error) {
-      console.error('Error fetching todos:', error);
+      console.error('❌ Error fetching todos:', error);
       return [];
     }
   },
-  
+
+  getByDate: async (userId: string, date: string) => {
+    try {
+      const uid = userId || getCurrentUserId();
+      if (!uid) return [];
+      const response = await apiClient.get(`/todos/${uid}/${date}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('❌ Error fetching todos by date:', error);
+      return [];
+    }
+  },
+
   create: async (todoData: any) => {
     try {
+      const uid = getCurrentUserId();
+      if (!uid) throw new Error('User not authenticated');
+      
       const payload = {
-        ...todoData,
-        text: todoData.text || todoData.particulars || 'Untitled Todo',
+        userId: uid,
+        title: todoData.title || todoData.text || 'Untitled',
+        description: todoData.description || '',
+        dueDate: todoData.dueDate || '',
+        dueTime: todoData.dueTime || '',
+        priority: todoData.priority || 'Medium',
+        category: todoData.category || 'Personal',
+        reminder: todoData.reminder || false,
+        reminderTime: todoData.reminderTime || '',
+        linkedTaskId: todoData.linkedTaskId || '',
+        linkedTaskTitle: todoData.linkedTaskTitle || '',
+        tags: todoData.tags || [],
+        completed: false
       };
-      console.log('Creating todo:', payload);
+
       const response = await apiClient.post('/todos', payload);
       return response.data;
     } catch (error: any) {
-      console.error('Error creating todo:', error);
+      console.error('❌ Error creating todo:', error);
       throw new Error(`Failed to create todo: ${error.response?.data?.message || error.message}`);
     }
   },
-  
-  update: async (id: number, todoData: any) => {
+
+  update: async (id: string, todoData: any) => {
     try {
       const response = await apiClient.put(`/todos/${id}`, todoData);
       return response.data;
     } catch (error: any) {
-      console.error('Error updating todo:', error);
+      console.error('❌ Error updating todo:', error);
       throw new Error(`Failed to update todo: ${error.response?.data?.message || error.message}`);
     }
   },
-  
-  delete: async (id: number) => {
+
+  delete: async (id: string) => {
     try {
       const response = await apiClient.delete(`/todos/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error('Error deleting todo:', error);
+      console.error('❌ Error deleting todo:', error);
       throw new Error(`Failed to delete todo: ${error.response?.data?.message || error.message}`);
     }
   }
