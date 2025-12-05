@@ -56,7 +56,7 @@ const SadhakaPlannerPage = () => {
   useEffect(() => {
     if (user?.id) {
       loadAllData();
-      const interval = setInterval(loadAllData, 30000);
+      const interval = setInterval(loadAllData, 120000); // 2 minutes
       return () => clearInterval(interval);
     }
   }, [user?.id]);
