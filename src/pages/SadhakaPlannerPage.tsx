@@ -14,6 +14,8 @@ import {
   Vision, Goal, Milestone, Task, MyWord, Todo, Reminder, DailyPlan, HealthTracker
 } from '../utils/sadhakaPlannerData';
 import TasksComponent from '../components/TasksComponent';
+import MyWordComponent from '../components/MyWordComponent';
+import VisionComponent from '../components/VisionComponent';
 
 const SadhakaPlannerPage = () => {
   const { user } = useAuth();
@@ -331,10 +333,7 @@ const SadhakaPlannerPage = () => {
             )}
 
             {activeTab === 'vision' && (
-              <div className="text-center py-12 text-gray-500">
-                <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Vision section coming soon...</p>
-              </div>
+              <VisionComponent onVisionsUpdate={(updatedVisions) => setVisions(updatedVisions)} />
             )}
 
             {activeTab === 'goals' && (
@@ -356,10 +355,7 @@ const SadhakaPlannerPage = () => {
             )}
 
             {activeTab === 'myword' && (
-              <div className="text-center py-12 text-gray-500">
-                <Heart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>My Word section coming soon...</p>
-              </div>
+              <MyWordComponent onMyWordsUpdate={(updatedWords) => setMyWords(updatedWords)} />
             )}
 
             {activeTab === 'todos' && (
