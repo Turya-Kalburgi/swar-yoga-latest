@@ -132,11 +132,11 @@ const WorkshopPage = () => {
     console.log('🚀 WorkshopPage component mounted, loading workshops...');
     loadWorkshops();
     
-    // Auto-refresh workshops every 10 seconds to check for new batches
+    // Auto-refresh workshops every 2 minutes to check for new batches
     const autoRefreshInterval = setInterval(() => {
       console.log('⏰ Auto-refresh check at', new Date().toLocaleTimeString());
       loadWorkshops();
-    }, 10000); // Refresh every 10 seconds
+    }, 120000); // Refresh every 2 minutes (120 seconds)
 
     // Set up BroadcastChannel listener if available
     let bc: BroadcastChannel | null = null;
@@ -285,20 +285,11 @@ const WorkshopPage = () => {
 
   const categories = [
     { value: 'all', label: 'All Categories' },
-    { value: 'basic swar yoga master class', label: 'Basic Swar Yoga Master Class' },
-    { value: 'swar yoga master class', label: 'Swar Yoga Master Class' },
-    { value: '90 days weight loss', label: '90 Days Weight Loss' },
-    { value: '90 days meditation program', label: '90 Days Meditation Program' },
-    { value: '90 days amrut aahar', label: '90 Days Amrut Aahar' },
-    { value: '12 days garbh sanskrar', label: '12 Days Garbh Sanskrar' },
-    { value: '12 days pranayama workshop', label: '12 Days Pranayama Workshop' },
-    { value: '15 days bandhan mukti workshop', label: '15 Days Bandhan Mukti Workshop' },
-    { value: '12 days children swar yoga', label: '12 Days Children Swar Yoga' },
-    { value: '4 days swar yoga retreat', label: '4 Days Swar Yoga Retreat' },
-    { value: '5 days swar yoga master class', label: '5 Days Swar Yoga Master Class(Residential)' },
-    { value: 'gurukul teacher program', label: 'Gurukul Teacher Program(Residential)' },
-    { value: 'swar yoga teachers training', label: 'Swar Yoga Teachers Training(Residential)' },
-    { value: 'swar yoga trekking camp', label: 'Swar Yoga Trekking Camp' }
+    { value: 'swar yoga basic workshop', label: 'Swar Yoga Basic Workshop' },
+    { value: 'swar yoga level-1', label: 'Swar Yoga Level-1' },
+    { value: 'swar yoga level-2', label: 'Swar Yoga Level-2' },
+    { value: 'swar yoga level-3', label: 'Swar Yoga Level-3' },
+    { value: 'swar yoga level-4', label: 'Swar Yoga Level-4' }
   ];
 
   // Function to format date in dd/mm/yyyy format
@@ -615,6 +606,155 @@ const WorkshopPage = () => {
             </div>
           </div>
         )}
+
+        {/* See This Month's Dates Section */}
+        <div className="mt-16 mb-12">
+          <div className="bg-gradient-to-r from-green-50 via-green-100 to-green-50 rounded-3xl shadow-lg p-8 border border-green-200">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl font-bold text-gray-800 mb-3">
+                📅 See This <span className="text-green-600">Month's Dates</span>
+              </h2>
+              <p className="text-lg text-gray-700">
+                Find the perfect workshop schedule for your learning journey
+              </p>
+            </div>
+
+            {/* Month Overview Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+              {months.slice(1).map(month => {
+                const monthIndex = parseInt(month.value);
+                const monthName = month.label;
+                const workshopsInMonth = workshops.filter(ws => 
+                  new Date(ws.startDate).getMonth() === monthIndex
+                );
+                
+                return (
+                  <div key={month.value} className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 p-6 text-center cursor-pointer hover:scale-105">
+                    <div className="text-3xl mb-2">📆</div>
+                    <h3 className="font-bold text-gray-800 text-lg mb-2">{monthName}</h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">
+                        <span className="text-2xl font-bold text-green-600">{workshopsInMonth.length}</span>
+                        <br />
+                        workshops
+                      </span>
+                      {workshopsInMonth.length > 0 && (
+                        <button
+                          onClick={() => handleFilterChange('month', month.value)}
+                          className="px-3 py-1 bg-green-600 text-white text-xs rounded-full hover:bg-green-700 transition-colors"
+                        >
+                          View
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Upcoming Workshops for Current Month */}
+            <div className="bg-white rounded-2xl p-6 border border-green-200">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <Calendar className="h-6 w-6 text-green-600" />
+                Upcoming Workshops - {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
+              </h3>
+
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                {(() => {
+                  const currentMonth = new Date().getMonth();
+                  const currentYear = new Date().getFullYear();
+                  const upcomingWorkshops = workshops.filter(ws => {
+                    const wsDate = new Date(ws.startDate);
+                    return wsDate.getMonth() === currentMonth && wsDate.getFullYear() === currentYear;
+                  }).sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+                  if (upcomingWorkshops.length === 0) {
+                    return (
+                      <div className="text-center py-8 text-gray-500">
+                        <p className="text-lg">No workshops scheduled for this month yet</p>
+                        <p className="text-sm mt-2">Check other months for available dates</p>
+                      </div>
+                    );
+                  }
+
+                  return upcomingWorkshops.map((workshop, index) => (
+                    <div 
+                      key={workshop.id}
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-transparent rounded-xl border border-green-200 hover:shadow-md transition-all group"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-green-600 text-white font-bold text-sm">
+                            {index + 1}
+                          </span>
+                          <div>
+                            <h4 className="font-semibold text-gray-800 group-hover:text-green-600 transition-colors">
+                              {workshop.title}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {formatDate(workshop.startDate)} - {formatDate(workshop.endDate)} 
+                              <span className="mx-2">•</span>
+                              {workshop.duration}
+                            </p>
+                            <div className="flex gap-2 mt-1 text-xs">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full">{workshop.mode}</span>
+                              <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full">{workshop.language}</span>
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">₹{workshop.priceINR}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                        <div className="text-right hidden sm:block">
+                          <p className="text-xs text-gray-600">{workshop.enrolledCount}/{workshop.maxParticipants} Enrolled</p>
+                          <div className="w-24 h-2 bg-gray-200 rounded-full mt-1">
+                            <div 
+                              className="h-full bg-green-600 rounded-full" 
+                              style={{ width: `${(workshop.enrolledCount || 0) / workshop.maxParticipants * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            viewWorkshopDetails(workshop);
+                          }}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all font-medium text-sm whitespace-nowrap"
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+
+              {/* Call to Action */}
+              <div className="mt-8 p-6 bg-gradient-to-r from-green-600 to-green-700 rounded-2xl text-white text-center">
+                <h4 className="text-2xl font-bold mb-2">Don't Miss Out! 🎯</h4>
+                <p className="mb-4 text-green-50">
+                  Check back regularly for new workshop dates and special offers
+                </p>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <button
+                    onClick={handleRefresh}
+                    className="px-6 py-3 bg-white text-green-600 rounded-lg hover:bg-green-50 transition-colors font-semibold flex items-center gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Refresh to See Latest
+                  </button>
+                  <button
+                    onClick={() => document.getElementById('workshops-section')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-900 transition-colors font-semibold"
+                  >
+                    View All Workshops
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Workshop Details Modal */}
         {selectedWorkshop && !showVideoModal && (
