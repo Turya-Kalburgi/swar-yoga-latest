@@ -272,8 +272,8 @@ const WorkshopPage = () => {
     { value: 'all', label: 'All Modes' },
     { value: 'online', label: 'Online' },
     { value: 'offline', label: 'Offline' },
-    { value: 'hybrid', label: 'Hybrid' },
-    { value: 'retreat', label: 'Retreat' }
+    { value: 'residential', label: 'Residential' },
+    { value: 'resort', label: 'Resort' }
   ];
 
   const languages = [
@@ -297,7 +297,8 @@ const WorkshopPage = () => {
     { value: 'global youth program', label: 'Global Youth Program' },
     { value: 'children swar yoga program', label: 'Children Swar Yoga Program' },
     { value: 'business growth and swar yoga program', label: 'Business Growth and Swar Yoga Program' },
-    { value: 'trekking camp', label: 'Trekking Camp' }
+    { value: 'trekking camp', label: 'Trekking Camp' },
+    { value: '7 days naturopathy program', label: '7 Days Naturopathy Program' }
   ];
 
   // Function to format date in dd/mm/yyyy format

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { tasksAPI } from '../utils/database';
+import { tasksAPI, goalsAPI } from '../utils/database';
 import { 
   Plus, 
   CheckSquare, 
@@ -11,7 +11,8 @@ import {
   Filter,
   Search,
   Repeat,
-  Bell
+  Bell,
+  Target
 } from 'lucide-react';
 
 interface Task {
@@ -27,10 +28,13 @@ interface Task {
   customRepeatDays?: number;
   reminder: boolean;
   reminderTime?: string;
+  linkedGoalId?: number;
+  linkedGoalTitle?: string;
 }
 
 const MyTasks: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [goals, setGoals] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -43,6 +47,20 @@ const MyTasks: React.FC = () => {
       }
     };
     load();
+    return () => { mounted = false };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadGoals = async () => {
+      try {
+        const data = await goalsAPI.getAll();
+        if (mounted) setGoals(data || []);
+      } catch (err) {
+        console.error('Failed to load goals', err);
+      }
+    };
+    loadGoals();
     return () => { mounted = false };
   }, []);
 
@@ -61,7 +79,8 @@ const MyTasks: React.FC = () => {
     repeat: 'None' as Task['repeat'],
     customRepeatDays: 1,
     reminder: false,
-    reminderTime: ''
+    reminderTime: '',
+    linkedGoalId: 0
   });
 
   const filteredTasks = tasks.filter(task => {
@@ -91,7 +110,9 @@ const MyTasks: React.FC = () => {
         repeat: newTask.repeat,
         customRepeatDays: newTask.repeat === 'Custom' ? newTask.customRepeatDays : undefined,
         reminder: newTask.reminder,
-        reminderTime: newTask.reminder ? newTask.reminderTime : undefined
+        reminderTime: newTask.reminder ? newTask.reminderTime : undefined,
+        linkedGoalId: newTask.linkedGoalId || undefined,
+        linkedGoalTitle: newTask.linkedGoalId ? goals.find(g => g.id === newTask.linkedGoalId)?.title : undefined
       };
       // persist to API then update state
       tasksAPI.create(task).then(created => setTasks(prev => [...prev, created])).catch(err => {
@@ -108,7 +129,8 @@ const MyTasks: React.FC = () => {
         repeat: 'None',
         customRepeatDays: 1,
         reminder: false,
-        reminderTime: ''
+        reminderTime: '',
+        linkedGoalId: 0
       });
       setShowAddModal(false);
     }
@@ -126,7 +148,8 @@ const MyTasks: React.FC = () => {
       repeat: task.repeat,
       customRepeatDays: task.customRepeatDays || 1,
       reminder: task.reminder,
-      reminderTime: task.reminderTime || ''
+      reminderTime: task.reminderTime || '',
+      linkedGoalId: task.linkedGoalId || 0
     });
     setShowAddModal(true);
   };
@@ -144,7 +167,9 @@ const MyTasks: React.FC = () => {
         repeat: newTask.repeat,
         customRepeatDays: newTask.repeat === 'Custom' ? newTask.customRepeatDays : undefined,
         reminder: newTask.reminder,
-        reminderTime: newTask.reminder ? newTask.reminderTime : undefined
+        reminderTime: newTask.reminder ? newTask.reminderTime : undefined,
+        linkedGoalId: newTask.linkedGoalId || undefined,
+        linkedGoalTitle: newTask.linkedGoalId ? goals.find(g => g.id === newTask.linkedGoalId)?.title : undefined
       };
       tasksAPI.update(Number(editingTask.id), updated).then(res => {
         setTasks(prev => prev.map(t => (t.id === res.id ? res : t)));
@@ -163,7 +188,8 @@ const MyTasks: React.FC = () => {
         repeat: 'None',
         customRepeatDays: 1,
         reminder: false,
-        reminderTime: ''
+        reminderTime: '',
+        linkedGoalId: 0
       });
       setShowAddModal(false);
     }
@@ -380,6 +406,15 @@ const MyTasks: React.FC = () => {
                           </span>
                         </div>
                       )}
+
+                      {task.linkedGoalId && (
+                        <div className="flex items-center space-x-1 bg-green-50 px-3 py-1 rounded-lg">
+                          <Target className="h-4 w-4 text-green-600" />
+                          <span className="text-green-600 text-xs">
+                            Goal: {task.linkedGoalTitle || 'Linked'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -432,7 +467,8 @@ const MyTasks: React.FC = () => {
                     repeat: 'None',
                     customRepeatDays: 1,
                     reminder: false,
-                    reminderTime: ''
+                    reminderTime: '',
+                    linkedGoalId: 0
                   });
                 }}
                 className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
@@ -551,6 +587,36 @@ const MyTasks: React.FC = () => {
                 </div>
               )}
 
+              {/* Link to Goal */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Link to Goal (Optional)
+                </label>
+                <select
+                  value={newTask.linkedGoalId}
+                  onChange={(e) => {
+                    const goalId = parseInt(e.target.value);
+                    const selectedGoal = goals.find(g => g.id === goalId);
+                    setNewTask(prev => ({ 
+                      ...prev, 
+                      linkedGoalId: goalId,
+                    }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900"
+                >
+                  <option value={0}>Select a goal...</option>
+                  {goals.length > 0 ? (
+                    goals.map(goal => (
+                      <option key={goal.id} value={goal.id}>
+                        {goal.title} ({goal.status})
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No goals available</option>
+                  )}
+                </select>
+              </div>
+
               {/* Reminder Section */}
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
@@ -613,7 +679,8 @@ const MyTasks: React.FC = () => {
                       repeat: 'None',
                       customRepeatDays: 1,
                       reminder: false,
-                      reminderTime: ''
+                      reminderTime: '',
+                      linkedGoalId: 0
                     });
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"

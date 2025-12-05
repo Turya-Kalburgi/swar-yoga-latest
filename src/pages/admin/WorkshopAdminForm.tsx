@@ -83,10 +83,11 @@ const WorkshopAdminForm: React.FC = () => {
     'global youth program',
     'children swar yoga program',
     'business growth and swar yoga program',
-    'trekking camp'
+    'trekking camp',
+    '7 days naturopathy program'
   ];
 
-  const modes = ['Online', 'Offline', 'Hybrid', 'Retreat'];
+  const modes = ['Online', 'Offline', 'Residential', 'Resort'];
   const languages = ['Hindi', 'English', 'Marathi', 'Mixed'];
   const levels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
 

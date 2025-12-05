@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dailyWordsAPI } from '../utils/database';
+import { dailyWordsAPI, visionAPI, goalsAPI, tasksAPI } from '../utils/database';
 import { 
   Plus, 
   Heart, 
@@ -8,7 +8,11 @@ import {
   Calendar,
   Clock,
   Filter,
-  Search
+  Search,
+  Link,
+  Eye,
+  Target,
+  CheckCircle
 } from 'lucide-react';
 
 interface WordEntry {
@@ -20,10 +24,19 @@ interface WordEntry {
   completed: boolean;
   completedAt?: string;
   reflection?: string;
+  linkedVisionId?: number;
+  linkedVisionTitle?: string;
+  linkedGoalId?: number;
+  linkedGoalTitle?: string;
+  linkedTaskId?: number;
+  linkedTaskTitle?: string;
 }
 
 const MyWord: React.FC = () => {
   const [wordEntries, setWordEntries] = useState<WordEntry[]>([]);
+  const [visions, setVisions] = useState<any[]>([]);
+  const [goals, setGoals] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -39,6 +52,48 @@ const MyWord: React.FC = () => {
     return () => { mounted = false };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    const loadVisions = async () => {
+      try {
+        const data = await visionAPI.getAll();
+        if (mounted) setVisions(data || []);
+      } catch (err) {
+        console.error('Failed to load visions', err);
+      }
+    };
+    loadVisions();
+    return () => { mounted = false };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadGoals = async () => {
+      try {
+        const data = await goalsAPI.getAll();
+        if (mounted) setGoals(data || []);
+      } catch (err) {
+        console.error('Failed to load goals', err);
+      }
+    };
+    loadGoals();
+    return () => { mounted = false };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadTasks = async () => {
+      try {
+        const data = await tasksAPI.getAll();
+        if (mounted) setTasks(data || []);
+      } catch (err) {
+        console.error('Failed to load tasks', err);
+      }
+    };
+    loadTasks();
+    return () => { mounted = false };
+  }, []);
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEntry, setEditingEntry] = useState<WordEntry | null>(null);
   const [filter, setFilter] = useState('all');
@@ -49,7 +104,10 @@ const MyWord: React.FC = () => {
     commitment: '',
     date: new Date().toISOString().split('T')[0],
     timeframe: 'Daily',
-    reflection: ''
+    reflection: '',
+    linkedVisionId: 0,
+    linkedGoalId: 0,
+    linkedTaskId: 0
   });
   
   type NewEntry = {
@@ -58,6 +116,9 @@ const MyWord: React.FC = () => {
     date: string;
     timeframe: WordEntry['timeframe'];
     reflection?: string;
+    linkedVisionId: number;
+    linkedGoalId: number;
+    linkedTaskId: number;
   };
   // ensure newEntry has correct union types
   // (we keep the initial value above)
@@ -83,7 +144,13 @@ const MyWord: React.FC = () => {
         date: newEntry.date,
         timeframe: newEntry.timeframe,
         completed: false,
-        reflection: newEntry.reflection || undefined
+        reflection: newEntry.reflection || undefined,
+        linkedVisionId: newEntry.linkedVisionId || undefined,
+        linkedVisionTitle: newEntry.linkedVisionId ? visions.find(v => v.id === newEntry.linkedVisionId)?.title : undefined,
+        linkedGoalId: newEntry.linkedGoalId || undefined,
+        linkedGoalTitle: newEntry.linkedGoalId ? goals.find(g => g.id === newEntry.linkedGoalId)?.title : undefined,
+        linkedTaskId: newEntry.linkedTaskId || undefined,
+        linkedTaskTitle: newEntry.linkedTaskId ? tasks.find(t => t.id === newEntry.linkedTaskId)?.particulars : undefined
       };
       dailyWordsAPI.create(entry).then(created => setWordEntries(prev => [...prev, created])).catch(err => {
         console.error('Failed to create word entry', err);
@@ -94,7 +161,10 @@ const MyWord: React.FC = () => {
         commitment: '',
         date: new Date().toISOString().split('T')[0],
         timeframe: 'Daily',
-        reflection: ''
+        reflection: '',
+        linkedVisionId: 0,
+        linkedGoalId: 0,
+        linkedTaskId: 0
       });
       setShowAddModal(false);
     }
@@ -107,26 +177,35 @@ const MyWord: React.FC = () => {
       commitment: entry.commitment,
       date: entry.date,
       timeframe: entry.timeframe,
-      reflection: entry.reflection || ''
+      reflection: entry.reflection || '',
+      linkedVisionId: entry.linkedVisionId || 0,
+      linkedGoalId: entry.linkedGoalId || 0,
+      linkedTaskId: entry.linkedTaskId || 0
     });
     setShowAddModal(true);
   };
 
   const handleUpdateEntry = () => {
     if (editingEntry && newEntry.word.trim() && newEntry.commitment.trim()) {
-      const updated = {
+      const updated: WordEntry = {
         ...editingEntry,
         word: newEntry.word,
         commitment: newEntry.commitment,
         date: newEntry.date,
         timeframe: newEntry.timeframe,
-        reflection: newEntry.reflection || undefined
+        reflection: newEntry.reflection || undefined,
+        linkedVisionId: newEntry.linkedVisionId || undefined,
+        linkedVisionTitle: newEntry.linkedVisionId ? visions.find(v => v.id === newEntry.linkedVisionId)?.title : undefined,
+        linkedGoalId: newEntry.linkedGoalId || undefined,
+        linkedGoalTitle: newEntry.linkedGoalId ? goals.find(g => g.id === newEntry.linkedGoalId)?.title : undefined,
+        linkedTaskId: newEntry.linkedTaskId || undefined,
+        linkedTaskTitle: newEntry.linkedTaskId ? tasks.find(t => t.id === newEntry.linkedTaskId)?.particulars : undefined
       };
       dailyWordsAPI.update(Number(editingEntry.id), updated).then(res => {
         setWordEntries(prev => prev.map(e => (e.id === res.id ? res : e)));
       }).catch(err => {
         console.error('Failed to update word entry', err);
-        setWordEntries(prev => prev.map(e => (e.id === editingEntry.id ? updated as WordEntry : e)));
+        setWordEntries(prev => prev.map(e => (e.id === editingEntry.id ? updated : e)));
       });
       setEditingEntry(null);
       setNewEntry({
@@ -134,7 +213,10 @@ const MyWord: React.FC = () => {
         commitment: '',
         date: new Date().toISOString().split('T')[0],
         timeframe: 'Daily',
-        reflection: ''
+        reflection: '',
+        linkedVisionId: 0,
+        linkedGoalId: 0,
+        linkedTaskId: 0
       });
       setShowAddModal(false);
     }
@@ -293,11 +375,32 @@ const MyWord: React.FC = () => {
                       {entry.commitment}
                     </p>
                     
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3 flex-wrap">
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
                         <span>{new Date(entry.date).toLocaleDateString()}</span>
                       </div>
+                      
+                      {entry.linkedVisionId && (
+                        <div className="flex items-center space-x-1 bg-blue-50 px-2 py-1 rounded text-xs text-blue-700">
+                          <Eye className="h-3 w-3" />
+                          <span>Vision: {entry.linkedVisionTitle || 'Linked'}</span>
+                        </div>
+                      )}
+
+                      {entry.linkedGoalId && (
+                        <div className="flex items-center space-x-1 bg-green-50 px-2 py-1 rounded text-xs text-green-700">
+                          <Target className="h-3 w-3" />
+                          <span>Goal: {entry.linkedGoalTitle || 'Linked'}</span>
+                        </div>
+                      )}
+
+                      {entry.linkedTaskId && (
+                        <div className="flex items-center space-x-1 bg-purple-50 px-2 py-1 rounded text-xs text-purple-700">
+                          <CheckCircle className="h-3 w-3" />
+                          <span>Task: {entry.linkedTaskTitle || 'Linked'}</span>
+                        </div>
+                      )}
                     </div>
                     
                     {entry.reflection && (
@@ -352,7 +455,10 @@ const MyWord: React.FC = () => {
                     commitment: '',
                     date: new Date().toISOString().split('T')[0],
                     timeframe: 'Daily',
-                    reflection: ''
+                    reflection: '',
+                    linkedVisionId: 0,
+                    linkedGoalId: 0,
+                    linkedTaskId: 0
                   });
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -421,6 +527,77 @@ const MyWord: React.FC = () => {
                 </div>
               </div>
 
+              {/* Entity Linking Section */}
+              <div className="border-t pt-4 mt-4">
+                <p className="text-sm font-medium text-gray-700 mb-3">Link to Goals (Optional)</p>
+                
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                    Link to Vision
+                  </label>
+                  <select
+                    value={newEntry.linkedVisionId}
+                    onChange={(e) => setNewEntry(prev => ({ ...prev, linkedVisionId: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 text-sm"
+                  >
+                    <option value={0}>Select a vision...</option>
+                    {visions.length > 0 ? (
+                      visions.map(vision => (
+                        <option key={vision.id} value={vision.id}>
+                          {vision.title}
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No visions available</option>
+                    )}
+                  </select>
+                </div>
+
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                    Link to Goal
+                  </label>
+                  <select
+                    value={newEntry.linkedGoalId}
+                    onChange={(e) => setNewEntry(prev => ({ ...prev, linkedGoalId: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 text-sm"
+                  >
+                    <option value={0}>Select a goal...</option>
+                    {goals.length > 0 ? (
+                      goals.map(goal => (
+                        <option key={goal.id} value={goal.id}>
+                          {goal.title} ({goal.status})
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No goals available</option>
+                    )}
+                  </select>
+                </div>
+
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                    Link to Task
+                  </label>
+                  <select
+                    value={newEntry.linkedTaskId}
+                    onChange={(e) => setNewEntry(prev => ({ ...prev, linkedTaskId: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900 text-sm"
+                  >
+                    <option value={0}>Select a task...</option>
+                    {tasks.length > 0 ? (
+                      tasks.map(task => (
+                        <option key={task.id} value={task.id}>
+                          {task.particulars} ({task.status})
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No tasks available</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Reflection (Optional)
@@ -444,7 +621,10 @@ const MyWord: React.FC = () => {
                       commitment: '',
                       date: new Date().toISOString().split('T')[0],
                       timeframe: 'Daily',
-                      reflection: ''
+                      reflection: '',
+                      linkedVisionId: 0,
+                      linkedGoalId: 0,
+                      linkedTaskId: 0
                     });
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"

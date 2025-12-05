@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { todosAPI } from '../utils/database';
+import { todosAPI, tasksAPI } from '../utils/database';
 import { 
   Plus, 
   CheckSquare, 
@@ -7,7 +7,8 @@ import {
   Trash2, 
   Filter,
   Search,
-  Calendar
+  Calendar,
+  CheckCircle
 } from 'lucide-react';
 
 interface Todo {
@@ -17,10 +18,13 @@ interface Todo {
   category: string;
   createdAt: string;
   dueDate?: string;
+  linkedTaskId?: number;
+  linkedTaskTitle?: string;
 }
 
 const MyTodos: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -36,6 +40,20 @@ const MyTodos: React.FC = () => {
     return () => { mounted = false };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    const loadTasks = async () => {
+      try {
+        const data = await tasksAPI.getAll();
+        if (mounted) setTasks(data || []);
+      } catch (err) {
+        console.error('Failed to load tasks', err);
+      }
+    };
+    loadTasks();
+    return () => { mounted = false };
+  }, []);
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   const [filter, setFilter] = useState('all');
@@ -44,7 +62,8 @@ const MyTodos: React.FC = () => {
   const [newTodo, setNewTodo] = useState({
     text: '',
     category: 'Personal',
-    dueDate: ''
+    dueDate: '',
+    linkedTaskId: 0
   });
 
   const categories = ['Personal', 'Work', 'Health', 'Learning', 'Home', 'Finance', 'Social'];
@@ -69,7 +88,9 @@ const MyTodos: React.FC = () => {
         completed: false,
         category: newTodo.category,
         createdAt: new Date().toISOString(),
-        dueDate: newTodo.dueDate || undefined
+        dueDate: newTodo.dueDate || undefined,
+        linkedTaskId: newTodo.linkedTaskId || undefined,
+        linkedTaskTitle: newTodo.linkedTaskId ? tasks.find(t => t.id === newTodo.linkedTaskId)?.particulars : undefined
       };
       todosAPI.create(todo).then(created => setTodos(prev => [...prev, created])).catch(err => {
         console.error('Failed to create todo', err);
@@ -78,7 +99,8 @@ const MyTodos: React.FC = () => {
       setNewTodo({
         text: '',
         category: 'Personal',
-        dueDate: ''
+        dueDate: '',
+        linkedTaskId: 0
       });
       setShowAddModal(false);
     }
@@ -89,28 +111,32 @@ const MyTodos: React.FC = () => {
     setNewTodo({
       text: todo.text,
       category: todo.category,
-      dueDate: todo.dueDate || ''
+      dueDate: todo.dueDate || '',
+      linkedTaskId: todo.linkedTaskId || 0
     });
     setShowAddModal(true);
   };
 
   const handleUpdateTodo = () => {
     if (editingTodo && newTodo.text.trim()) {
-      const updated = {
+      const updated: Todo = {
         ...editingTodo,
         text: newTodo.text,
         category: newTodo.category,
-        dueDate: newTodo.dueDate || undefined
+        dueDate: newTodo.dueDate || undefined,
+        linkedTaskId: newTodo.linkedTaskId || undefined,
+        linkedTaskTitle: newTodo.linkedTaskId ? tasks.find(t => t.id === newTodo.linkedTaskId)?.particulars : undefined
       };
       todosAPI.update(Number(editingTodo.id), updated).then(res => setTodos(prev => prev.map(t => (t.id === res.id ? res : t)))).catch(err => {
         console.error('Failed to update todo', err);
-        setTodos(prev => prev.map(t => (t.id === editingTodo.id ? updated as Todo : t)));
+        setTodos(prev => prev.map(t => (t.id === editingTodo.id ? updated : t)));
       });
       setEditingTodo(null);
       setNewTodo({
         text: '',
         category: 'Personal',
-        dueDate: ''
+        dueDate: '',
+        linkedTaskId: 0
       });
       setShowAddModal(false);
     }
@@ -254,7 +280,7 @@ const MyTodos: React.FC = () => {
                       {todo.text}
                     </h3>
                     
-                    <div className="flex items-center space-x-4 mt-2">
+                    <div className="flex items-center space-x-4 mt-2 flex-wrap">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(todo.category)}`}>
                         {todo.category}
                       </span>
@@ -269,6 +295,13 @@ const MyTodos: React.FC = () => {
                           }>
                             Due: {new Date(todo.dueDate).toLocaleDateString()}
                           </span>
+                        </div>
+                      )}
+
+                      {todo.linkedTaskId && (
+                        <div className="flex items-center space-x-1 bg-cyan-50 px-2 py-1 rounded text-xs text-cyan-700">
+                          <CheckCircle className="h-3 w-3" />
+                          <span>Task: {todo.linkedTaskTitle || 'Linked'}</span>
                         </div>
                       )}
                       
@@ -320,7 +353,8 @@ const MyTodos: React.FC = () => {
                   setNewTodo({
                     text: '',
                     category: 'Personal',
-                    dueDate: ''
+                    dueDate: '',
+                    linkedTaskId: 0
                   });
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -371,6 +405,28 @@ const MyTodos: React.FC = () => {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Link to Task (Optional)
+                </label>
+                <select
+                  value={newTodo.linkedTaskId}
+                  onChange={(e) => setNewTodo(prev => ({ ...prev, linkedTaskId: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                >
+                  <option value={0}>Select a task...</option>
+                  {tasks.length > 0 ? (
+                    tasks.map(task => (
+                      <option key={task.id} value={task.id}>
+                        {task.particulars} ({task.status})
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No tasks available</option>
+                  )}
+                </select>
+              </div>
+
               <div className="flex space-x-3 pt-4">
                 <button
                   onClick={() => {
@@ -379,7 +435,8 @@ const MyTodos: React.FC = () => {
                     setNewTodo({
                       text: '',
                       category: 'Personal',
-                      dueDate: ''
+                      dueDate: '',
+                      linkedTaskId: 0
                     });
                   }}
                   className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
