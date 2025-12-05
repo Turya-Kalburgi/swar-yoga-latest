@@ -102,7 +102,7 @@ export const visionAPI = {
     }
   },
   
-  update: async (id: number, visionData: any) => {
+  update: async (id: string, visionData: any) => {
     try {
       const response = await apiClient.put(`/visions/${id}`, visionData);
       return response.data;
@@ -113,7 +113,7 @@ export const visionAPI = {
     }
   },
   
-  delete: async (id: number) => {
+  delete: async (id: string) => {
     try {
       const response = await apiClient.delete(`/visions/${id}`);
       return response.data;
@@ -159,7 +159,7 @@ export const goalsAPI = {
     }
   },
   
-  update: async (id: number, goalData: any) => {
+  update: async (id: string, goalData: any) => {
     try {
       const response = await apiClient.put(`/goals/${id}`, goalData);
       return response.data;
@@ -170,7 +170,7 @@ export const goalsAPI = {
     }
   },
   
-  delete: async (id: number) => {
+  delete: async (id: string) => {
     try {
       const response = await apiClient.delete(`/goals/${id}`);
       return response.data;
@@ -212,7 +212,7 @@ export const tasksAPI = {
     }
   },
   
-  update: async (id: number, taskData: any) => {
+  update: async (id: string, taskData: any) => {
     try {
       const response = await apiClient.put(`/tasks/${id}`, taskData);
       return response.data;
@@ -222,7 +222,7 @@ export const tasksAPI = {
     }
   },
   
-  delete: async (id: number) => {
+  delete: async (id: string) => {
     try {
       const response = await apiClient.delete(`/tasks/${id}`);
       return response.data;
@@ -334,7 +334,7 @@ export const dailyWordsAPI = {
     }
   },
   
-  update: async (id: number, wordData: any) => {
+  update: async (id: string, wordData: any) => {
     try {
       const response = await apiClient.put(`/daily-words/${id}`, wordData);
       return response.data;
@@ -344,7 +344,7 @@ export const dailyWordsAPI = {
     }
   },
   
-  delete: async (id: number) => {
+  delete: async (id: string) => {
     try {
       const response = await apiClient.delete(`/daily-words/${id}`);
       return response.data;

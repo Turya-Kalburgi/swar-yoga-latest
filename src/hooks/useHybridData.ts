@@ -166,7 +166,7 @@ export const updateHybridData = async (
     } else if (dataType === 'tasks') {
       return await tasksAPI.update(id as number, payload);
     } else if (dataType === 'todos') {
-      return await todosAPI.update(id as number, payload);
+      return await todosAPI.update(String(id), payload);
     } else if (dataType === 'mywords') {
       return await dailyWordsAPI.update(id as number, payload);
     }
@@ -204,7 +204,7 @@ export const deleteHybridData = async (
     } else if (dataType === 'tasks') {
       await tasksAPI.delete(id as number);
     } else if (dataType === 'todos') {
-      await todosAPI.delete(id as number);
+      await todosAPI.delete(String(id));
     } else if (dataType === 'mywords') {
       await dailyWordsAPI.delete(id as number);
     }
