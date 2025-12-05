@@ -2,8 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs/promises';
 import path from 'path';
+import dotenv from 'dotenv';
 import workshopRoutes from './routes/workshops.js';
 import adminRoutes from './routes/admin.js';
+import visionRoutes from './routes/visions.js';
+import goalRoutes from './routes/goals.js';
+import taskRoutes from './routes/tasks.js';
+import todoRoutes from './routes/todos.js';
+import mywordRoutes from './routes/mywords.js';
+import healthRoutes from './routes/health.js';
+import connectDB from './config/db.js';
 import { 
   createDailyBackup, 
   listBackups, 
@@ -17,25 +25,20 @@ import {
   getBackupStats as getAdminBackupStats 
 } from './adminBackup.js';
 
+dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Try to dynamically load a Supabase client wrapper if available.
-// This file is optional and will only be used when SUPABASE_URL and
-// SUPABASE_SERVICE_ROLE_KEY are provided in the environment.
-let SUPABASE_AVAILABLE = false;
-let supabaseClient = null;
-try {
-  // top-level await is supported in ESM modules
-  const mod = await import('./supabaseClient.js');
-  if (mod && mod.SUPABASE_AVAILABLE) {
-    SUPABASE_AVAILABLE = true;
-    supabaseClient = mod;
-    console.log('Supabase client loaded — using Supabase for visions resource');
+// Initialize MongoDB connection
+(async () => {
+  try {
+    await connectDB();
+    console.log('✅ MongoDB initialization successful');
+  } catch (error) {
+    console.error('❌ MongoDB initialization failed:', error.message);
   }
-} catch (e) {
-  // If import fails, we silently fall back to JSON-file persistence.
-}
+})();
 
 app.use(cors({
   origin: '*',
@@ -52,6 +55,14 @@ app.get('/', (req, res) => {
 // ⭐ IMPORTANT: Workshop Routes MUST come FIRST before generic routes
 // Otherwise the generic routes will catch them!
 app.use('/api/admin/workshops', workshopRoutes);
+
+// ===== MONGODB ROUTES =====
+app.use('/api/visions', visionRoutes);
+app.use('/api/goals', goalRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/todos', todoRoutes);
+app.use('/api/mywords', mywordRoutes);
+app.use('/api/health', healthRoutes);
 
 // ===== ADMIN SYSTEM ROUTES =====
 app.use('/api/admin', adminRoutes);

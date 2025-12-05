@@ -1,4 +1,4 @@
-import { query } from '../mysqlAdmin.js';
+import { query } from './mysqlAdmin.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
