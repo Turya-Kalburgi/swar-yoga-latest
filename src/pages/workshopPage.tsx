@@ -788,6 +788,168 @@ const WorkshopPage = () => {
             </div>
           </div>
         )}
+
+        {/* Latest Two Months Highlights Section */}
+        <div className="mt-20 mb-12">
+          <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl shadow-lg p-8 border border-green-200">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                ⭐ Latest Highlights - Next <span className="text-green-600">Two Months</span>
+              </h2>
+              <p className="text-gray-700">
+                Explore our newest and most popular workshops coming your way
+              </p>
+            </div>
+
+            {/* Latest Workshops in Row Format */}
+            <div className="overflow-x-auto pb-4">
+              <div className="flex gap-4 min-w-max">
+                {(() => {
+                  const now = new Date();
+                  const twoMonthsFromNow = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+                  
+                  const latestWorkshops = workshops
+                    .filter(ws => {
+                      const wsDate = new Date(ws.startDate);
+                      return wsDate >= now && wsDate <= twoMonthsFromNow;
+                    })
+                    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+                    .slice(0, 6); // Show max 6 workshops
+
+                  if (latestWorkshops.length === 0) {
+                    return (
+                      <div className="w-full text-center py-8 text-gray-600">
+                        <p className="text-lg">No workshops scheduled for the next two months</p>
+                        <p className="text-sm mt-2">Check back soon for new dates!</p>
+                      </div>
+                    );
+                  }
+
+                  return latestWorkshops.map((workshop, index) => (
+                    <div
+                      key={workshop.id}
+                      className="flex-shrink-0 w-80 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                    >
+                      {/* Image Section */}
+                      <div className="relative h-40 overflow-hidden bg-gray-200">
+                        <img
+                          src={workshop.image || 'https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg'}
+                          alt={workshop.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getPlaceholderDataUrl(400, 200, 'Workshop');
+                          }}
+                        />
+                        <div className="absolute top-3 left-3">
+                          <span className="inline-block px-3 py-1 bg-green-600 text-white text-xs font-bold rounded-full">
+                            #{index + 1}
+                          </span>
+                        </div>
+                        <div className="absolute top-3 right-3 flex gap-2">
+                          <span className="px-2 py-1 bg-white/90 backdrop-blur text-xs font-medium text-gray-700 rounded">
+                            {workshop.mode}
+                          </span>
+                          {workshop.youtubeId && (
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedWorkshop(workshop);
+                                setShowVideoModal(true);
+                              }}
+                              className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                            >
+                              <Play className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content Section */}
+                      <div className="p-4">
+                        <h3 className="font-bold text-gray-800 text-sm line-clamp-2 mb-2 group-hover:text-green-600 transition-colors">
+                          {workshop.title}
+                        </h3>
+                        
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-1">
+                          by {workshop.instructor}
+                        </p>
+
+                        {/* Date and Time */}
+                        <div className="space-y-1 mb-3 text-xs text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-green-600" />
+                            <span>
+                              {new Date(workshop.startDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                              {' '}
+                              {new Date(workshop.startDate).getMonth() !== new Date(workshop.endDate).getMonth()
+                                ? `- ${new Date(workshop.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                                : `- ${new Date(workshop.endDate).getDate()}`
+                              }
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-green-600" />
+                            <span>{workshop.duration}</span>
+                          </div>
+                        </div>
+
+                        {/* Category Badge */}
+                        <div className="mb-3">
+                          <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                            {workshop.category.substring(0, 20)}...
+                          </span>
+                        </div>
+
+                        {/* Pricing */}
+                        <div className="mb-3 pb-3 border-b border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-bold text-gray-900">
+                              ₹{workshop.priceINR}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              NPR {workshop.priceNPR} • ${workshop.priceUSD}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => addToCart(workshop)}
+                            className="flex-1 bg-green-600 text-white text-xs py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                          >
+                            Add to Cart
+                          </button>
+                          <button
+                            onClick={() => viewWorkshopDetails(workshop)}
+                            className="flex-1 border border-green-600 text-green-600 text-xs py-2 rounded-lg hover:bg-green-50 transition-colors font-medium"
+                          >
+                            Details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* Scroll Indicator */}
+            {workshops.filter(ws => {
+              const now = new Date();
+              const twoMonthsFromNow = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+              const wsDate = new Date(ws.startDate);
+              return wsDate >= now && wsDate <= twoMonthsFromNow;
+            }).length > 6 && (
+              <div className="text-center mt-4 text-sm text-gray-600">
+                ← Scroll to see more workshops →
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
   {/* Footer provided by App layout */}
