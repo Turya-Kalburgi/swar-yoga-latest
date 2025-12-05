@@ -28,6 +28,7 @@ import AdminCartData from './pages/admin/AdminCartData';
 import AdminContactData from './pages/admin/AdminContactData';
 import AdminAccounting from './pages/admin/AdminAccounting';
 import CertificateCreator from './pages/admin/CertificateCreator';
+import SadhakaPlannerPage from './pages/SadhakaPlannerPage';
 import SwarCalendar from './pages/SwarCalendar';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -114,6 +115,7 @@ function App() {
                   <Route path="/admin/accounting" element={<ProtectedAdminRoute><AdminAccounting /></ProtectedAdminRoute>} />
                   <Route path="/admin/certificates" element={<ProtectedAdminRoute><CertificateCreator /></ProtectedAdminRoute>} />
                   <Route path="/accounting" element={<ProtectedAdminRoute><AdminAccounting /></ProtectedAdminRoute>} />
+                  <Route path="/sadhaka-planner" element={<><Header /><SadhakaPlannerPage /><Footer /></>} />
                   <Route path="/swar-calendar" element={<><Header /><SwarCalendar /><Footer /></>} />
                   {/* Catch-all route - 404 page */}
                   <Route path="*" element={<><Header /><NotFoundPage /><Footer /></>} />

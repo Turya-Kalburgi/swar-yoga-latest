@@ -1,0 +1,401 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Target, CheckSquare, Milestone as MilestoneIcon, ListTodo, Heart, Bell,
+  Calendar, TrendingUp, Plus, Edit2, Trash2, AlertCircle, CheckCircle,
+  Clock, AlertTriangle, Download, Share2, RefreshCw
+} from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import {
+  visionAPI, goalAPI, milestoneAPI, taskAPI, myWordAPI,
+  todoAPI, reminderAPI, dailyPlanAPI, healthTrackerAPI,
+  isOverdue, daysUntilDue, formatDate,
+  Vision, Goal, Milestone, Task, MyWord, Todo, Reminder, DailyPlan, HealthTracker
+} from '../utils/sadhakaPlannerData';
+
+const SadhakaPlannerPage = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // State management
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [loading, setLoading] = useState(true);
+
+  // Data states
+  const [visions, setVisions] = useState<Vision[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [myWords, setMyWords] = useState<MyWord[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [todaysPlan, setTodaysPlan] = useState<DailyPlan | null>(null);
+  const [healthData, setHealthData] = useState<HealthTracker | null>(null);
+
+  // Overdue items
+  const [overdueItems, setOverdueItems] = useState<{ tasks: Task[]; commitments: MyWord[] }>({
+    tasks: [],
+    commitments: []
+  });
+  const [showOverdueAlert, setShowOverdueAlert] = useState(false);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/signin');
+      return;
+    }
+  }, [user, navigate]);
+
+  // Load all data
+  useEffect(() => {
+    if (user?.id) {
+      loadAllData();
+      const interval = setInterval(loadAllData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user?.id]);
+
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      const userId = user?.id || '';
+
+      const [
+        visionsData,
+        goalsData,
+        milestonesData,
+        tasksData,
+        myWordsData,
+        todosData,
+        remindersData,
+        planData,
+        healthData
+      ] = await Promise.all([
+        visionAPI.getAll(userId),
+        goalAPI.getAll(userId),
+        milestoneAPI.getAll(userId),
+        taskAPI.getAll(userId),
+        myWordAPI.getAll(userId),
+        todoAPI.getAll(userId),
+        reminderAPI.getAll(userId),
+        dailyPlanAPI.getByDate(userId, new Date().toISOString().split('T')[0]),
+        healthTrackerAPI.getByDate(userId, new Date().toISOString().split('T')[0])
+      ]);
+
+      setVisions(visionsData);
+      setGoals(goalsData);
+      setMilestones(milestonesData);
+      setTasks(tasksData);
+      setMyWords(myWordsData);
+      setTodos(todosData);
+      setReminders(remindersData);
+      setTodaysPlan(planData);
+      setHealthData(healthData);
+
+      const overdueT = tasksData.filter((t: Task) => isOverdue(t.dueDate) && t.status !== 'Completed');
+      const overdueC = myWordsData.filter((m: MyWord) => isOverdue(m.completionDeadline) && m.status !== 'Completed');
+
+      if (overdueT.length > 0 || overdueC.length > 0) {
+        setOverdueItems({ tasks: overdueT, commitments: overdueC });
+        setShowOverdueAlert(true);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast.error('Failed to load planner data');
+      setLoading(false);
+    }
+  };
+
+  if (!user) return null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-purple-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading your Sadhaka Planner...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const tabsList = [
+    { id: 'dashboard', label: '📊 Dashboard' },
+    { id: 'vision', label: '🎯 Vision' },
+    { id: 'goals', label: '✓ Goals' },
+    { id: 'milestones', label: '🏁 Milestones' },
+    { id: 'tasks', label: '📋 Tasks' },
+    { id: 'myword', label: '💬 My Word' },
+    { id: 'todos', label: '☑️ Todos' },
+    { id: 'daily', label: '📅 Daily Plan' },
+    { id: 'health', label: '❤️ Health' },
+    { id: 'reminders', label: '🔔 Reminders' }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-purple-50 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">🧘 Sadhaka Planner</h1>
+              <p className="text-gray-600">Achieve your transformation journey with mindful planning</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={loadAllData}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Overdue Alert */}
+        {showOverdueAlert && (overdueItems.tasks.length > 0 || overdueItems.commitments.length > 0) && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-800 mb-2">⚠️ Pending - Overdue Items</h3>
+              {overdueItems.tasks.length > 0 && (
+                <p className="text-sm text-red-700 mb-1">
+                  🔴 {overdueItems.tasks.length} task(s) overdue
+                </p>
+              )}
+              {overdueItems.commitments.length > 0 && (
+                <p className="text-sm text-red-700">
+                  🔴 {overdueItems.commitments.length} commitment(s) overdue
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => setShowOverdueAlert(false)}
+              className="text-red-600 hover:text-red-800"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Dashboard Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Active Visions</p>
+                <p className="text-3xl font-bold text-blue-600">{visions.length}</p>
+              </div>
+              <Target className="h-8 w-8 text-blue-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Active Goals</p>
+                <p className="text-3xl font-bold text-purple-600">{goals.length}</p>
+              </div>
+              <CheckSquare className="h-8 w-8 text-purple-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Tasks Today</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {tasks.filter(t => new Date(t.dueDate).toDateString() === new Date().toDateString()).length}
+                </p>
+              </div>
+              <ListTodo className="h-8 w-8 text-green-600" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm">Todos</p>
+                <p className="text-3xl font-bold text-orange-600">
+                  {todos.filter(t => !t.completed).length}
+                </p>
+              </div>
+              <Clock className="h-8 w-8 text-orange-600" />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Tabs Section */}
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          {/* Tab Navigation */}
+          <div className="flex flex-wrap gap-1 p-2 bg-gray-100 border-b overflow-x-auto">
+            {tabsList.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 text-sm font-medium rounded-t whitespace-nowrap transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-white text-blue-600 border-b-2 border-blue-600 shadow-sm'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-6 min-h-96">
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Today's Focus */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-4">📌 Today's Focus</h3>
+                    <div className="space-y-2">
+                      {tasks.filter(t => new Date(t.dueDate).toDateString() === new Date().toDateString() && t.status !== 'Completed').slice(0, 3).map(task => (
+                        <div key={task.id} className="bg-white p-3 rounded flex items-start gap-2">
+                          <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                            task.priority === 'High' ? 'bg-red-500' : task.priority === 'Medium' ? 'bg-yellow-500' : 'bg-green-500'
+                          }`}></div>
+                          <div>
+                            <p className="font-medium text-gray-800">{task.title}</p>
+                            <p className="text-xs text-gray-500">Due: {formatDate(task.dueDate)}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {tasks.filter(t => new Date(t.dueDate).toDateString() === new Date().toDateString()).length === 0 && (
+                        <p className="text-gray-500 text-sm">No tasks for today</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* My Commitments */}
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-purple-900 mb-4">💜 My Commitments</h3>
+                    <div className="space-y-2">
+                      {myWords.filter(m => m.status !== 'Completed').slice(0, 3).map(word => (
+                        <div key={word.id} className="bg-white p-3 rounded">
+                          <p className="font-medium text-gray-800">{word.commitment}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Clock className="h-3 w-3 text-gray-500" />
+                            <p className="text-xs text-gray-500">Due: {formatDate(word.completionDeadline)}</p>
+                            {isOverdue(word.completionDeadline) && (
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Overdue</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="bg-white rounded-lg p-6 border border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">📈 Progress Overview</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600">
+                        {tasks.filter(t => t.status === 'Completed').length}
+                      </p>
+                      <p className="text-sm text-gray-600">Tasks Completed</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">
+                        {Math.round((goals.reduce((sum, g) => sum + g.progress, 0) / Math.max(goals.length, 1)))}%
+                      </p>
+                      <p className="text-sm text-gray-600">Avg Goal Progress</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-purple-600">
+                        {todos.filter(t => t.completed).length}/{todos.length}
+                      </p>
+                      <p className="text-sm text-gray-600">Todos Complete</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-orange-600">
+                        {myWords.filter(m => m.status === 'Completed').length}
+                      </p>
+                      <p className="text-sm text-gray-600">Commitments Met</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'vision' && (
+              <div className="text-center py-12 text-gray-500">
+                <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Vision section coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'goals' && (
+              <div className="text-center py-12 text-gray-500">
+                <CheckSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Goals section coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'milestones' && (
+              <div className="text-center py-12 text-gray-500">
+                <MilestoneIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Milestones section coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'tasks' && (
+              <div className="text-center py-12 text-gray-500">
+                <ListTodo className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Tasks section coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'myword' && (
+              <div className="text-center py-12 text-gray-500">
+                <Heart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>My Word section coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'todos' && (
+              <div className="text-center py-12 text-gray-500">
+                <CheckSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Todos section coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'daily' && (
+              <div className="text-center py-12 text-gray-500">
+                <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Daily Plan section coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'health' && (
+              <div className="text-center py-12 text-gray-500">
+                <Heart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Health Tracker section coming soon...</p>
+              </div>
+            )}
+
+            {activeTab === 'reminders' && (
+              <div className="text-center py-12 text-gray-500">
+                <Bell className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p>Reminders section coming soon...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SadhakaPlannerPage;
