@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://swar-yoga-dec.onrender.com/api';
+// Use localhost for development, fallback to render for production
+const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+  ? 'http://localhost:3001/api'
+  : 'https://swar-yoga-dec.onrender.com/api';
 
 // Get current user ID from localStorage
 export function getCurrentUserId(): string | null {
@@ -702,4 +705,68 @@ export const pageStateAPI = {
       console.error('Error clearing page state:', err);
     }
   },
+};
+
+// ===== DAILY PLANS API =====
+export const dailyPlansAPI = {
+  getAll: async (userId?: string) => {
+    try {
+      const uid = userId || getCurrentUserId();
+      if (!uid) return [];
+      const response = await apiClient.get(`/dailyplans/${uid}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching daily plans:', error);
+      return [];
+    }
+  },
+
+  getByDate: async (userId: string, date: string) => {
+    try {
+      const response = await apiClient.get(`/dailyplans/${userId}/${date}`);
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching daily plans for date:', error);
+      return [];
+    }
+  },
+
+  create: async (planData: any) => {
+    try {
+      const payload = {
+        ...planData,
+        userId: planData.userId || getCurrentUserId(),
+      };
+      console.log('Creating daily plan with payload:', payload);
+      const response = await apiClient.post('/dailyplans', payload);
+      console.log('Daily plan created successfully:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating daily plan:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to create daily plan: ${errorMsg}`);
+    }
+  },
+
+  update: async (id: string, planData: any) => {
+    try {
+      const response = await apiClient.put(`/dailyplans/${id}`, planData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating daily plan:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to update daily plan: ${errorMsg}`);
+    }
+  },
+
+  delete: async (id: string) => {
+    try {
+      const response = await apiClient.delete(`/dailyplans/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting daily plan:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to delete daily plan: ${errorMsg}`);
+    }
+  }
 };

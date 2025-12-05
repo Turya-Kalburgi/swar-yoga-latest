@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Plus, Edit, Trash2, Calendar, AlarmClock, Loader, Bell, Flag, AlertCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { dailyPlansAPI } from '../utils/database';
 
 interface DailyPlan {
-  id: string;
+  _id?: string;
+  id?: string;
   userId: string;
   date: string;
   time: string;
@@ -41,15 +43,15 @@ const DailyPlanComponent: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    loadPlans();
+    if (user.id) {
+      loadPlans();
+    }
   }, [user.id, selectedDate]);
 
   const loadPlans = async () => {
     try {
       setLoading(true);
-      const storageKey = `sadhaka_daily_plans_${user.id}`;
-      const stored = localStorage.getItem(storageKey);
-      const allPlans = stored ? JSON.parse(stored) : [];
+      const allPlans = await dailyPlansAPI.getAll(user.id);
 
       // Filter by selected date and sort by time
       const plansForDate = allPlans
@@ -93,52 +95,29 @@ const DailyPlanComponent: React.FC = () => {
     }
 
     try {
-      const storageKey = `sadhaka_daily_plans_${user.id}`;
-      const existingPlans = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const payload = {
+        userId: user.id,
+        date: selectedDate,
+        time: formData.time,
+        activity: formData.activity,
+        description: formData.description,
+        category: formData.category,
+        duration: formData.duration,
+        priority: formData.priority,
+        reminder: formData.reminder,
+        reminderTime: formData.reminderTime,
+        completed: formData.completed
+      };
 
       if (editingId) {
-        // Update
-        const index = existingPlans.findIndex((p: DailyPlan) => p.id === editingId);
-        if (index !== -1) {
-          existingPlans[index] = {
-            ...existingPlans[index],
-            time: formData.time,
-            activity: formData.activity,
-            description: formData.description,
-            category: formData.category,
-            duration: formData.duration,
-            priority: formData.priority,
-            reminder: formData.reminder,
-            reminderTime: formData.reminderTime,
-            completed: formData.completed
-          };
-        }
-        console.log(`✅ Plan updated: ${formData.activity}`);
+        await dailyPlansAPI.update(editingId, payload);
+        toast.success('Plan updated!');
       } else {
-        // Create
-        const newPlan: DailyPlan = {
-          id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          userId: user.id,
-          date: selectedDate,
-          time: formData.time,
-          activity: formData.activity,
-          description: formData.description,
-          category: formData.category,
-          duration: formData.duration,
-          priority: formData.priority,
-          reminder: formData.reminder,
-          reminderTime: formData.reminderTime,
-          completed: false,
-          createdAt: new Date().toISOString()
-        };
-        existingPlans.push(newPlan);
-        console.log(`✅ Plan created: ${formData.activity}`);
+        await dailyPlansAPI.create(payload);
+        toast.success('Plan created!');
       }
 
-      localStorage.setItem(storageKey, JSON.stringify(existingPlans));
       await loadPlans();
-
-      toast.success(editingId ? 'Plan updated!' : 'Plan created!');
       setShowAddModal(false);
       resetForm();
     } catch (error) {
@@ -149,15 +128,12 @@ const DailyPlanComponent: React.FC = () => {
 
   const handleToggle = async (id: string, completed: boolean) => {
     try {
-      const storageKey = `sadhaka_daily_plans_${user.id}`;
-      const plansData = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      const index = plansData.findIndex((p: DailyPlan) => p.id === id);
-      if (index !== -1) {
-        plansData[index].completed = !completed;
+      const plan = plans.find(p => (p._id || p.id) === id);
+      if (plan) {
+        await dailyPlansAPI.update(id, { completed: !completed });
+        await loadPlans();
+        toast.success('Plan updated');
       }
-      localStorage.setItem(storageKey, JSON.stringify(plansData));
-      await loadPlans();
-      console.log(`✅ Plan toggled`);
     } catch (error) {
       console.error('❌ Error toggling plan:', error);
     }
@@ -167,12 +143,7 @@ const DailyPlanComponent: React.FC = () => {
     if (!window.confirm('Delete this plan?')) return;
 
     try {
-      const storageKey = `sadhaka_daily_plans_${user.id}`;
-      const plansData = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      const filtered = plansData.filter((p: DailyPlan) => p.id !== id);
-      localStorage.setItem(storageKey, JSON.stringify(filtered));
-
-      console.log(`✅ Plan deleted`);
+      await dailyPlansAPI.delete(id);
       await loadPlans();
       toast.success('Plan deleted!');
     } catch (error) {
@@ -398,7 +369,7 @@ const DailyPlanComponent: React.FC = () => {
                       reminderTime: plan.reminderTime || '',
                       completed: plan.completed
                     });
-                    setEditingId(plan.id);
+                    setEditingId(plan._id || plan.id || '');
                     setShowAddModal(true);
                   }}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded transition"
@@ -406,7 +377,7 @@ const DailyPlanComponent: React.FC = () => {
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(plan.id)}
+                  onClick={() => handleDelete(plan._id || plan.id || '')}
                   className="p-2 text-red-600 hover:bg-red-50 rounded transition"
                 >
                   <Trash2 className="w-4 h-4" />

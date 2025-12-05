@@ -17,6 +17,7 @@ import adminMongoRoutes from './routes/adminMongo.js';
 import contactRoutes from './routes/contact.js';
 import milestoneRoutes from './routes/milestones.js';
 import reminderRoutes from './routes/reminders.js';
+import dailyPlanRoutes from './routes/dailyplans.js';
 import connectDB from './config/db.js';
 import { 
   createDailyBackup, 
@@ -69,6 +70,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/todos', todoRoutes);
 app.use('/api/mywords', mywordRoutes);
 app.use('/api/health', healthRoutes);
+app.use('/api/dailyplans', dailyPlanRoutes);
 
 
 // ===== MONGODB USER & CART ROUTES =====
