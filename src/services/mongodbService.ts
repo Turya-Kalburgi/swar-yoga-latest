@@ -10,6 +10,39 @@ const axiosInstance = axios.create({
   }
 });
 
+// ==================== USER SERVICE ====================
+export const userService = {
+  register: (data) => axiosInstance.post('/users/register', data),
+  signin: (data) => axiosInstance.post('/users/signin', data),
+  getProfile: (userId) => axiosInstance.get(`/users/profile/${userId}`),
+  getByEmail: (email) => axiosInstance.get(`/users/email/${email}`),
+  updateProfile: (userId, data) => axiosInstance.put(`/users/profile/${userId}`, data),
+  changePassword: (userId, data) => axiosInstance.post(`/users/change-password/${userId}`, data)
+};
+
+// ==================== CART SERVICE ====================
+export const cartService = {
+  getCartByUserId: (userId) => axiosInstance.get(`/carts/${userId}`),
+  getCartByEmail: (email) => axiosInstance.get(`/carts/email/${email}`),
+  addToCart: (data) => axiosInstance.post('/carts', data),
+  updateQuantity: (userId, workshopId, data) => axiosInstance.put(`/carts/${userId}/item/${workshopId}`, data),
+  removeFromCart: (userId, workshopId) => axiosInstance.delete(`/carts/${userId}/item/${workshopId}`),
+  clearCart: (userId) => axiosInstance.post(`/carts/${userId}/clear`),
+  checkout: (userId) => axiosInstance.post(`/carts/${userId}/checkout`),
+  deleteCart: (userId) => axiosInstance.delete(`/carts/${userId}`)
+};
+
+// ==================== ADMIN SERVICE ====================
+export const adminService = {
+  signin: (data) => axiosInstance.post('/admin-mongo/signin', data),
+  getProfile: (adminId) => axiosInstance.get(`/admin-mongo/profile/${adminId}`),
+  createAdmin: (data) => axiosInstance.post('/admin-mongo/create', data),
+  updateProfile: (adminId, data) => axiosInstance.put(`/admin-mongo/profile/${adminId}`, data),
+  getAllAdmins: () => axiosInstance.get('/admin-mongo/all'),
+  changePassword: (adminId, data) => axiosInstance.post(`/admin-mongo/change-password/${adminId}`, data),
+  deactivate: (adminId) => axiosInstance.post(`/admin-mongo/deactivate/${adminId}`)
+};
+
 // ==================== VISION SERVICE ====================
 export const visionService = {
   getAll: (userId) => axiosInstance.get(`/visions/${userId}`),
@@ -93,6 +126,9 @@ export const batchService = {
 };
 
 export default {
+  userService,
+  cartService,
+  adminService,
   visionService,
   goalService,
   taskService,

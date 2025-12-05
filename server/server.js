@@ -11,6 +11,9 @@ import taskRoutes from './routes/tasks.js';
 import todoRoutes from './routes/todos.js';
 import mywordRoutes from './routes/mywords.js';
 import healthRoutes from './routes/health.js';
+import userRoutes from './routes/users.js';
+import cartRoutes from './routes/carts.js';
+import adminMongoRoutes from './routes/adminMongo.js';
 import connectDB from './config/db.js';
 import { 
   createDailyBackup, 
@@ -64,6 +67,11 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/mywords', mywordRoutes);
 app.use('/api/health', healthRoutes);
 
+
+// ===== MONGODB USER & CART ROUTES =====
+app.use('/api/users', userRoutes);
+app.use('/api/carts', cartRoutes);
+app.use('/api/admin-mongo', adminMongoRoutes);
 // ===== ADMIN SYSTEM ROUTES =====
 app.use('/api/admin', adminRoutes);
 
