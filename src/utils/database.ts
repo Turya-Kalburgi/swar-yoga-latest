@@ -71,190 +71,391 @@ apiClient.interceptors.response.use(
 // ===== VISION API =====
 export const visionAPI = {
   getAll: async (year?: number) => {
-    const params = year ? { year } : {};
-    const response = await apiClient.get('/visions', { params });
-    return response.data;
+    try {
+      const params = year ? { year } : {};
+      const response = await apiClient.get('/visions', { params });
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching visions:', error);
+      return [];
+    }
   },
   
   create: async (visionData: any) => {
-    const response = await apiClient.post('/visions', visionData);
-    return response.data;
+    try {
+      const payload = {
+        ...visionData,
+        title: visionData.title || visionData.name || 'Untitled Vision',
+        year: visionData.year || new Date().getFullYear(),
+      };
+      console.log('Creating vision with payload:', payload);
+      const response = await apiClient.post('/visions', payload);
+      console.log('Vision created successfully:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating vision:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to create vision: ${errorMsg}`);
+    }
   },
   
   update: async (id: number, visionData: any) => {
-    const response = await apiClient.put(`/visions/${id}`, visionData);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/visions/${id}`, visionData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating vision:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to update vision: ${errorMsg}`);
+    }
   },
   
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/visions/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`/visions/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting vision:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to delete vision: ${errorMsg}`);
+    }
   }
 };
 
 // ===== GOALS API =====
 export const goalsAPI = {
   getAll: async (year?: number) => {
-    const params = year ? { year } : {};
-    const response = await apiClient.get('/goals', { params });
-    return response.data;
+    try {
+      const params = year ? { year } : {};
+      const response = await apiClient.get('/goals', { params });
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      return [];
+    }
   },
   
   create: async (goalData: any) => {
-    const response = await apiClient.post('/goals', goalData);
-    return response.data;
+    try {
+      // Ensure required fields
+      const payload = {
+        ...goalData,
+        title: goalData.title || goalData.name || 'Untitled Goal',
+        description: goalData.description || '',
+        status: goalData.status || 'In Progress',
+        progress: goalData.progress ?? 0,
+      };
+      console.log('Creating goal with payload:', payload);
+      const response = await apiClient.post('/goals', payload);
+      console.log('Goal created successfully:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating goal:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to create goal: ${errorMsg}`);
+    }
   },
   
   update: async (id: number, goalData: any) => {
-    const response = await apiClient.put(`/goals/${id}`, goalData);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/goals/${id}`, goalData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating goal:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to update goal: ${errorMsg}`);
+    }
   },
   
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/goals/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`/goals/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting goal:', error);
+      const errorMsg = error.response?.data?.message || error.message;
+      throw new Error(`Failed to delete goal: ${errorMsg}`);
+    }
   }
 };
 
 // ===== TASKS API =====
 export const tasksAPI = {
   getAll: async (year?: number) => {
-    const params = year ? { year } : {};
-    const response = await apiClient.get('/tasks', { params });
-    return response.data;
+    try {
+      const params = year ? { year } : {};
+      const response = await apiClient.get('/tasks', { params });
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      return [];
+    }
   },
   
   create: async (taskData: any) => {
-    const response = await apiClient.post('/tasks', taskData);
-    return response.data;
+    try {
+      const payload = {
+        ...taskData,
+        particulars: taskData.particulars || taskData.title || 'Untitled Task',
+        status: taskData.status || 'Pending',
+      };
+      console.log('Creating task:', payload);
+      const response = await apiClient.post('/tasks', payload);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating task:', error);
+      throw new Error(`Failed to create task: ${error.response?.data?.message || error.message}`);
+    }
   },
   
   update: async (id: number, taskData: any) => {
-    const response = await apiClient.put(`/tasks/${id}`, taskData);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/tasks/${id}`, taskData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating task:', error);
+      throw new Error(`Failed to update task: ${error.response?.data?.message || error.message}`);
+    }
   },
   
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/tasks/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`/tasks/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting task:', error);
+      throw new Error(`Failed to delete task: ${error.response?.data?.message || error.message}`);
+    }
   }
 };
 
 // ===== TODOS API =====
 export const todosAPI = {
   getAll: async (year?: number) => {
-    const params = year ? { year } : {};
-    const response = await apiClient.get('/todos', { params });
-    return response.data;
+    try {
+      const params = year ? { year } : {};
+      const response = await apiClient.get('/todos', { params });
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+      return [];
+    }
   },
   
   create: async (todoData: any) => {
-    const response = await apiClient.post('/todos', todoData);
-    return response.data;
+    try {
+      const payload = {
+        ...todoData,
+        text: todoData.text || todoData.particulars || 'Untitled Todo',
+      };
+      console.log('Creating todo:', payload);
+      const response = await apiClient.post('/todos', payload);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating todo:', error);
+      throw new Error(`Failed to create todo: ${error.response?.data?.message || error.message}`);
+    }
   },
   
   update: async (id: number, todoData: any) => {
-    const response = await apiClient.put(`/todos/${id}`, todoData);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/todos/${id}`, todoData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating todo:', error);
+      throw new Error(`Failed to update todo: ${error.response?.data?.message || error.message}`);
+    }
   },
   
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/todos/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`/todos/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting todo:', error);
+      throw new Error(`Failed to delete todo: ${error.response?.data?.message || error.message}`);
+    }
   }
 };
 
 // ===== DAILY WORDS API =====
 export const dailyWordsAPI = {
   getAll: async (date?: string) => {
-    const params = date ? { date } : {};
-    const response = await apiClient.get('/daily-words', { params });
-    return response.data;
+    try {
+      const params = date ? { date } : {};
+      const response = await apiClient.get('/daily-words', { params });
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching daily words:', error);
+      return [];
+    }
   },
   
   create: async (wordData: any) => {
-    const response = await apiClient.post('/daily-words', wordData);
-    return response.data;
+    try {
+      const payload = { ...wordData, text: wordData.text || wordData.word || 'My Word' };
+      console.log('Creating daily word:', payload);
+      const response = await apiClient.post('/daily-words', payload);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating daily word:', error);
+      throw new Error(`Failed to create word: ${error.response?.data?.message || error.message}`);
+    }
   },
   
   update: async (id: number, wordData: any) => {
-    const response = await apiClient.put(`/daily-words/${id}`, wordData);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/daily-words/${id}`, wordData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating daily word:', error);
+      throw new Error(`Failed to update word: ${error.response?.data?.message || error.message}`);
+    }
   },
   
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/daily-words/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`/daily-words/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting daily word:', error);
+      throw new Error(`Failed to delete word: ${error.response?.data?.message || error.message}`);
+    }
   }
 };
 
 // ===== AFFIRMATIONS API =====
 export const affirmationsAPI = {
   getAll: async () => {
-    const response = await apiClient.get('/affirmations');
-    return response.data;
+    try {
+      const response = await apiClient.get('/affirmations');
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching affirmations:', error);
+      return [];
+    }
   },
 
   create: async (data: any) => {
-    const response = await apiClient.post('/affirmations', data);
-    return response.data;
+    try {
+      const payload = { ...data, text: data.text || data.affirmation || 'My Affirmation' };
+      console.log('Creating affirmation:', payload);
+      const response = await apiClient.post('/affirmations', payload);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating affirmation:', error);
+      throw new Error(`Failed to create affirmation: ${error.response?.data?.message || error.message}`);
+    }
   },
 
   update: async (id: number, data: any) => {
-    const response = await apiClient.put(`/affirmations/${id}`, data);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/affirmations/${id}`, data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating affirmation:', error);
+      throw new Error(`Failed to update affirmation: ${error.response?.data?.message || error.message}`);
+    }
   },
 
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/affirmations/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`/affirmations/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting affirmation:', error);
+      throw new Error(`Failed to delete affirmation: ${error.response?.data?.message || error.message}`);
+    }
   }
 };
 
 // ===== HEALTH API =====
 export const healthAPI = {
   getAll: async (date?: string) => {
-    const params = date ? { date } : {};
-    const response = await apiClient.get('/health', { params });
-    return response.data;
+    try {
+      const params = date ? { date } : {};
+      const response = await apiClient.get('/health', { params });
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching health data:', error);
+      return [];
+    }
   },
 
   create: async (healthData: any) => {
-    const response = await apiClient.post('/health', healthData);
-    return response.data;
+    try {
+      console.log('Creating health entry:', healthData);
+      const response = await apiClient.post('/health', healthData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating health entry:', error);
+      throw new Error(`Failed to create health entry: ${error.response?.data?.message || error.message}`);
+    }
   },
 
   update: async (id: number, healthData: any) => {
-    const response = await apiClient.put(`/health/${id}`, healthData);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/health/${id}`, healthData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating health entry:', error);
+      throw new Error(`Failed to update health entry: ${error.response?.data?.message || error.message}`);
+    }
   },
 
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/health/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`/health/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting health entry:', error);
+      throw new Error(`Failed to delete health entry: ${error.response?.data?.message || error.message}`);
+    }
   }
 };
 
 // ===== PEOPLE API (DIAMOND PEOPLE) =====
 export const peopleAPI = {
   getAll: async () => {
-    const response = await apiClient.get('/people');
-    return response.data;
+    try {
+      const response = await apiClient.get('/people');
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching people:', error);
+      return [];
+    }
   },
 
   create: async (personData: any) => {
-    const response = await apiClient.post('/people', personData);
-    return response.data;
+    try {
+      const payload = { ...personData, name: personData.name || 'New Person' };
+      console.log('Creating person:', payload);
+      const response = await apiClient.post('/people', payload);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating person:', error);
+      throw new Error(`Failed to create person: ${error.response?.data?.message || error.message}`);
+    }
   },
 
   update: async (id: number, personData: any) => {
-    const response = await apiClient.put(`/people/${id}`, personData);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/people/${id}`, personData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating person:', error);
+      throw new Error(`Failed to update person: ${error.response?.data?.message || error.message}`);
+    }
   },
 
   delete: async (id: number) => {
-    const response = await apiClient.delete(`/people/${id}`);
-    return response.data;
+    try {
+      const response = await apiClient.delete(`/people/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error deleting person:', error);
+      throw new Error(`Failed to delete person: ${error.response?.data?.message || error.message}`);
+    }
   }
 };
 

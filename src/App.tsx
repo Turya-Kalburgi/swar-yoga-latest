@@ -30,6 +30,7 @@ import AdminAccounting from './pages/admin/AdminAccounting';
 import CertificateCreator from './pages/admin/CertificateCreator';
 import LifePlanner from './pages/LifePlanner';
 import SwarCalendar from './pages/SwarCalendar';
+import NotFoundPage from './pages/NotFoundPage';
 
 import DailyPlanner from './components/DailyPlanner';
 import WeeklyPlanner from './components/WeeklyPlanner';
@@ -125,6 +126,8 @@ function App() {
                   <Route path="/vision-board/weekly" element={<><Header /><WeeklyPlanner /><Footer /></>} />
                   <Route path="/vision-board/monthly" element={<><Header /><MonthlyPlanner /><Footer /></>} />
                   <Route path="/vision-board/yearly" element={<><Header /><YearlyPlanner /><Footer /></>} />
+                  {/* Catch-all route - 404 page */}
+                  <Route path="*" element={<><Header /><NotFoundPage /><Footer /></>} />
                 </Routes>
 
                 <ToastContainer
