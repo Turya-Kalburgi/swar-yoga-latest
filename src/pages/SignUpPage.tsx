@@ -186,7 +186,13 @@ const SignUpPage = () => {
         await authAPI.recordSignUp(signupData);
         setSubmitStatus('success');
         toast.success('Account created successfully!');
-        const userData = { email: formData.email, name: formData.name, id: btoa(formData.email).replace(/=/g, "").substring(0, 20), isNewUser: true };
+        const normalizedEmail = formData.email.toLowerCase();
+        const userData = { 
+          email: normalizedEmail, 
+          name: formData.name, 
+          id: btoa(normalizedEmail).replace(/=/g, "").substring(0, 20), 
+          isNewUser: true 
+        };
         login(userData as any);
         setTimeout(() => navigate(redirectPath === 'account' ? '/account' : '/'), 500);
       }
