@@ -17,6 +17,11 @@ import TasksComponent from '../components/TasksComponent';
 import MyWordComponent from '../components/MyWordComponent';
 import VisionComponent from '../components/VisionComponent';
 import GoalsComponent from '../components/GoalsComponent';
+import MilestonesComponent from '../components/MilestonesComponent';
+import TodosComponent from '../components/TodosComponent';
+import DailyPlanComponent from '../components/DailyPlanComponent';
+import HealthTrackerComponent from '../components/HealthTrackerComponent';
+import RemindersComponent from '../components/RemindersComponent';
 
 const SadhakaPlannerPage = () => {
   const { user } = useAuth();
@@ -342,10 +347,7 @@ const SadhakaPlannerPage = () => {
             )}
 
             {activeTab === 'milestones' && (
-              <div className="text-center py-12 text-gray-500">
-                <MilestoneIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Milestones section coming soon...</p>
-              </div>
+              <MilestonesComponent />
             )}
 
             {activeTab === 'tasks' && (
@@ -357,31 +359,19 @@ const SadhakaPlannerPage = () => {
             )}
 
             {activeTab === 'todos' && (
-              <div className="text-center py-12 text-gray-500">
-                <CheckSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Todos section coming soon...</p>
-              </div>
+              <TodosComponent />
             )}
 
             {activeTab === 'daily' && (
-              <div className="text-center py-12 text-gray-500">
-                <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Daily Plan section coming soon...</p>
-              </div>
+              <DailyPlanComponent />
             )}
 
             {activeTab === 'health' && (
-              <div className="text-center py-12 text-gray-500">
-                <Heart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Health Tracker section coming soon...</p>
-              </div>
+              <HealthTrackerComponent />
             )}
 
             {activeTab === 'reminders' && (
-              <div className="text-center py-12 text-gray-500">
-                <Bell className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Reminders section coming soon...</p>
-              </div>
+              <RemindersComponent />
             )}
           </div>
         </div>
