@@ -14,6 +14,9 @@ import healthRoutes from './routes/health.js';
 import userRoutes from './routes/users.js';
 import cartRoutes from './routes/carts.js';
 import adminMongoRoutes from './routes/adminMongo.js';
+import contactRoutes from './routes/contact.js';
+import milestoneRoutes from './routes/milestones.js';
+import reminderRoutes from './routes/reminders.js';
 import connectDB from './config/db.js';
 import { 
   createDailyBackup, 
@@ -74,6 +77,9 @@ app.use('/api/carts', cartRoutes);
 app.use('/api/admin-mongo', adminMongoRoutes);
 // ===== ADMIN SYSTEM ROUTES =====
 app.use('/api/admin', adminRoutes);
+app.use('/api/milestones', milestoneRoutes);
+app.use('/api/reminders', reminderRoutes);
+app.use('/api/contact', contactRoutes);
 
 // ===== BACKUP SYSTEM ENDPOINTS =====
 // Create daily backup

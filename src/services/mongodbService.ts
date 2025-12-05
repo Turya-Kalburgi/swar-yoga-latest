@@ -137,3 +137,28 @@ export default {
   healthService,
   batchService
 };
+
+// ==================== MILESTONE SERVICE ====================
+export const milestoneService = {
+  getAll: (userId) => axiosInstance.get(`/milestones/${userId}`),
+  getOne: (userId, milestoneId) => axiosInstance.get(`/milestones/${userId}/${milestoneId}`),
+  create: (data) => axiosInstance.post('/milestones', data),
+  update: (userId, milestoneId, data) => axiosInstance.put(`/milestones/${userId}/${milestoneId}`, data),
+  linkVision: (userId, milestoneId, visionId) => axiosInstance.post(`/milestones/${userId}/${milestoneId}/link-vision`, { visionId }),
+  addTasks: (userId, milestoneId, taskIds) => axiosInstance.post(`/milestones/${userId}/${milestoneId}/add-tasks`, { taskIds }),
+  addTodos: (userId, milestoneId, todoIds) => axiosInstance.post(`/milestones/${userId}/${milestoneId}/add-todos`, { todoIds }),
+  delete: (userId, milestoneId) => axiosInstance.delete(`/milestones/${userId}/${milestoneId}`)
+};
+
+// ==================== REMINDER SERVICE ====================
+export const reminderService = {
+  getAll: (userId) => axiosInstance.get(`/reminders/${userId}`),
+  getOne: (userId, reminderId) => axiosInstance.get(`/reminders/${userId}/${reminderId}`),
+  create: (data) => axiosInstance.post('/reminders', data),
+  update: (userId, reminderId, data) => axiosInstance.put(`/reminders/${userId}/${reminderId}`, data),
+  snooze: (userId, reminderId, snoozeMinutes) => axiosInstance.post(`/reminders/${userId}/${reminderId}/snooze`, { snoozeMinutes }),
+  dismiss: (userId, reminderId) => axiosInstance.post(`/reminders/${userId}/${reminderId}/dismiss`),
+  complete: (userId, reminderId) => axiosInstance.post(`/reminders/${userId}/${reminderId}/complete`),
+  getUpcoming: (userId, days) => axiosInstance.get(`/reminders/${userId}/upcoming`, { params: { days } }),
+  delete: (userId, reminderId) => axiosInstance.delete(`/reminders/${userId}/${reminderId}`)
+};
