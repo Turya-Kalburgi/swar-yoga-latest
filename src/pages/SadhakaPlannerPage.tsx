@@ -16,6 +16,7 @@ import {
 import TasksComponent from '../components/TasksComponent';
 import MyWordComponent from '../components/MyWordComponent';
 import VisionComponent from '../components/VisionComponent';
+import GoalsComponent from '../components/GoalsComponent';
 
 const SadhakaPlannerPage = () => {
   const { user } = useAuth();
@@ -337,10 +338,7 @@ const SadhakaPlannerPage = () => {
             )}
 
             {activeTab === 'goals' && (
-              <div className="text-center py-12 text-gray-500">
-                <CheckSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>Goals section coming soon...</p>
-              </div>
+              <GoalsComponent onGoalsUpdate={(updatedGoals) => setGoals(updatedGoals)} />
             )}
 
             {activeTab === 'milestones' && (
