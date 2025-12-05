@@ -8,7 +8,11 @@ import {
   Filter,
   Search,
   Calendar,
-  CheckCircle
+  CheckCircle,
+  Bell,
+  Flag,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 
 interface Todo {
@@ -18,6 +22,10 @@ interface Todo {
   category: string;
   createdAt: string;
   dueDate?: string;
+  dueTime?: string;
+  priority?: 'Low' | 'Medium' | 'High';
+  reminder?: boolean;
+  reminderTime?: string;
   linkedTaskId?: number;
   linkedTaskTitle?: string;
 }
@@ -63,6 +71,10 @@ const MyTodos: React.FC = () => {
     text: '',
     category: 'Personal',
     dueDate: '',
+    dueTime: '',
+    priority: 'Medium' as 'Low' | 'Medium' | 'High',
+    reminder: false,
+    reminderTime: '',
     linkedTaskId: 0
   });
 
@@ -89,6 +101,10 @@ const MyTodos: React.FC = () => {
         category: newTodo.category,
         createdAt: new Date().toISOString(),
         dueDate: newTodo.dueDate || undefined,
+        dueTime: newTodo.dueTime || undefined,
+        priority: newTodo.priority,
+        reminder: newTodo.reminder,
+        reminderTime: newTodo.reminder ? newTodo.reminderTime : undefined,
         linkedTaskId: newTodo.linkedTaskId || undefined,
         linkedTaskTitle: newTodo.linkedTaskId ? tasks.find(t => t.id === newTodo.linkedTaskId)?.particulars : undefined
       };
@@ -100,6 +116,10 @@ const MyTodos: React.FC = () => {
         text: '',
         category: 'Personal',
         dueDate: '',
+        dueTime: '',
+        priority: 'Medium',
+        reminder: false,
+        reminderTime: '',
         linkedTaskId: 0
       });
       setShowAddModal(false);
@@ -112,6 +132,10 @@ const MyTodos: React.FC = () => {
       text: todo.text,
       category: todo.category,
       dueDate: todo.dueDate || '',
+      dueTime: todo.dueTime || '',
+      priority: todo.priority || 'Medium',
+      reminder: todo.reminder || false,
+      reminderTime: todo.reminderTime || '',
       linkedTaskId: todo.linkedTaskId || 0
     });
     setShowAddModal(true);
@@ -124,6 +148,10 @@ const MyTodos: React.FC = () => {
         text: newTodo.text,
         category: newTodo.category,
         dueDate: newTodo.dueDate || undefined,
+        dueTime: newTodo.dueTime || undefined,
+        priority: newTodo.priority,
+        reminder: newTodo.reminder,
+        reminderTime: newTodo.reminder ? newTodo.reminderTime : undefined,
         linkedTaskId: newTodo.linkedTaskId || undefined,
         linkedTaskTitle: newTodo.linkedTaskId ? tasks.find(t => t.id === newTodo.linkedTaskId)?.particulars : undefined
       };
@@ -136,6 +164,10 @@ const MyTodos: React.FC = () => {
         text: '',
         category: 'Personal',
         dueDate: '',
+        dueTime: '',
+        priority: 'Medium',
+        reminder: false,
+        reminderTime: '',
         linkedTaskId: 0
       });
       setShowAddModal(false);
@@ -172,6 +204,24 @@ const MyTodos: React.FC = () => {
       'Social': 'bg-pink-100 text-pink-800'
     };
     return colors[category] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case 'High': return 'bg-red-100 text-red-800 border-red-300';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'Low': return 'bg-green-100 text-green-800 border-green-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getPriorityIconColor = (priority?: string) => {
+    switch (priority) {
+      case 'High': return 'text-red-600';
+      case 'Medium': return 'text-yellow-600';
+      case 'Low': return 'text-green-600';
+      default: return 'text-gray-600';
+    }
   };
 
   const completedTodos = todos.filter(todo => todo.completed).length;
@@ -280,34 +330,46 @@ const MyTodos: React.FC = () => {
                       {todo.text}
                     </h3>
                     
-                    <div className="flex items-center space-x-4 mt-2 flex-wrap">
+                    <div className="flex items-center space-x-4 mt-2 flex-wrap gap-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(todo.category)}`}>
                         {todo.category}
                       </span>
+
+                      {todo.priority && (
+                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(todo.priority)}`}>
+                          <Flag className={`h-3 w-3 ${getPriorityIconColor(todo.priority)}`} />
+                          <span>{todo.priority} Priority</span>
+                        </div>
+                      )}
                       
                       {todo.dueDate && (
-                        <div className="flex items-center space-x-1 text-sm text-gray-600">
+                        <div className={`flex items-center space-x-1 text-xs ${new Date(todo.dueDate) < new Date() && !todo.completed ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
                           <Calendar className="h-4 w-4" />
-                          <span className={
-                            new Date(todo.dueDate) < new Date() && !todo.completed
-                              ? 'text-red-600 font-medium'
-                              : ''
-                          }>
+                          <span>
                             Due: {new Date(todo.dueDate).toLocaleDateString()}
+                            {todo.dueTime && ` @ ${todo.dueTime}`}
+                          </span>
+                          {new Date(todo.dueDate) < new Date() && !todo.completed && (
+                            <AlertCircle className="h-4 w-4 text-red-600 ml-1" />
+                          )}
+                        </div>
+                      )}
+
+                      {todo.reminder && (
+                        <div className="flex items-center space-x-1 bg-indigo-50 px-2 py-1 rounded text-xs text-indigo-700 border border-indigo-200">
+                          <Bell className="h-3 w-3" />
+                          <span>
+                            Reminder {todo.reminderTime ? `@ ${todo.reminderTime}` : 'set'}
                           </span>
                         </div>
                       )}
 
                       {todo.linkedTaskId && (
-                        <div className="flex items-center space-x-1 bg-cyan-50 px-2 py-1 rounded text-xs text-cyan-700">
+                        <div className="flex items-center space-x-1 bg-cyan-50 px-2 py-1 rounded text-xs text-cyan-700 border border-cyan-200">
                           <CheckCircle className="h-3 w-3" />
                           <span>Task: {todo.linkedTaskTitle || 'Linked'}</span>
                         </div>
                       )}
-                      
-                      <span className="text-xs text-gray-500">
-                        Created: {new Date(todo.createdAt).toLocaleDateString()}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -354,6 +416,10 @@ const MyTodos: React.FC = () => {
                     text: '',
                     category: 'Personal',
                     dueDate: '',
+                    dueTime: '',
+                    priority: 'Medium',
+                    reminder: false,
+                    reminderTime: '',
                     linkedTaskId: 0
                   });
                 }}
@@ -395,14 +461,72 @@ const MyTodos: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Due Date (Optional)
+                  Priority
                 </label>
-                <input
-                  type="date"
-                  value={newTodo.dueDate}
-                  onChange={(e) => setNewTodo(prev => ({ ...prev, dueDate: e.target.value }))}
+                <select
+                  value={newTodo.priority}
+                  onChange={(e) => setNewTodo(prev => ({ ...prev, priority: e.target.value as any }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
-                />
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Due Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={newTodo.dueDate}
+                    onChange={(e) => setNewTodo(prev => ({ ...prev, dueDate: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Due Time (Optional)
+                  </label>
+                  <input
+                    type="time"
+                    value={newTodo.dueTime}
+                    onChange={(e) => setNewTodo(prev => ({ ...prev, dueTime: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="reminder"
+                    checked={newTodo.reminder}
+                    onChange={(e) => setNewTodo(prev => ({ ...prev, reminder: e.target.checked }))}
+                    className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="reminder" className="text-sm font-medium text-gray-700">
+                    Set reminder
+                  </label>
+                </div>
+
+                {newTodo.reminder && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Reminder time
+                    </label>
+                    <input
+                      type="time"
+                      value={newTodo.reminderTime}
+                      onChange={(e) => setNewTodo(prev => ({ ...prev, reminderTime: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
@@ -436,6 +560,10 @@ const MyTodos: React.FC = () => {
                       text: '',
                       category: 'Personal',
                       dueDate: '',
+                      dueTime: '',
+                      priority: 'Medium',
+                      reminder: false,
+                      reminderTime: '',
                       linkedTaskId: 0
                     });
                   }}
