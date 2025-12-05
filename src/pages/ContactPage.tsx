@@ -115,8 +115,8 @@ const ContactPage = () => {
     try {
       const API_URL = (import.meta as any).env.VITE_API_URL || 'https://swar-yoga-dec.onrender.com/api';
 
-      // Send contact message to admin system
-      const response = await fetch(`${API_URL}/admin/contact/messages`, {
+      // Send contact message to MongoDB contact system
+      const response = await fetch(`${API_URL}/contact/messages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
