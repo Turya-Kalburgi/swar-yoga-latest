@@ -1,5 +1,6 @@
 import express, { Request, Response, Router } from 'express';
 import User from '../models/User.js';
+import SignupData from '../models/SignupData';
 import crypto from 'crypto';
 import type { IUser } from '../models/User.js';
 
@@ -61,6 +62,30 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
     });
 
     await newUser.save();
+    
+    // Also save signup data for analytics
+    try {
+      const signupRecord = new SignupData({
+        name,
+        email: normalizedEmail,
+        phone,
+        countryCode: countryCode || '+91',
+        country,
+        state,
+        gender,
+        age,
+        profession,
+        registrationDate: new Date(),
+        status: 'active',
+        source: 'signup'
+      });
+      
+      await signupRecord.save();
+      console.log(`✅ Signup data saved for: ${email}`);
+    } catch (signupError) {
+      console.log(`⚠️  SignupData save failed for ${email}:`, signupError instanceof Error ? signupError.message : 'Unknown error');
+    }
+    
     console.log(`✅ New user registered: ${email} (ID: ${userId})`);
 
     res.status(201).json({ success: true, message: 'User registered successfully', userId });

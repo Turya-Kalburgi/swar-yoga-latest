@@ -130,7 +130,7 @@ const SignUpPage = () => {
         password: formData.password,
         name: formData.name
       };
-      const resp = await fetch('/api/auth/register', {
+      const resp = await fetch('/api/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

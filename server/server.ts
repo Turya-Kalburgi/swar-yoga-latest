@@ -5,6 +5,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import workshopRoutes from './routes/workshops.js';
 import adminRoutes from './routes/admin.js';
+import authRoutes from './routes/auth.js';
 import visionRoutes from './routes/visions.js';
 import goalRoutes from './routes/goals.js';
 import taskRoutes from './routes/tasks.js';
@@ -104,6 +105,9 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/mywords', mywordRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/dailyplans', dailyPlanRoutes);
+
+// ===== AUTH ROUTES =====
+app.use('/api/auth', authRoutes);
 
 // ===== MONGODB USER & CART ROUTES =====
 app.use('/api/users', userRoutes);

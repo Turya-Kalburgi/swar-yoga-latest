@@ -62,7 +62,7 @@ const SignInPage = () => {
 
     try {
       // Try server login first
-      const resp = await fetch('/api/auth/login', {
+      const resp = await fetch('/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

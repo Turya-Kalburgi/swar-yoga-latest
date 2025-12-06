@@ -188,9 +188,4 @@ const userSchema = new Schema<IUser>(
 userSchema.index({ accountStatus: 1, signupDate: -1 });
 userSchema.index({ lastLogin: -1 });
 
-userSchema.pre('save', function (this: any, next: any) {
-  this.lastUpdated = new Date();
-  next();
-});
-
 export default mongoose.model<IUser>('User', userSchema);
