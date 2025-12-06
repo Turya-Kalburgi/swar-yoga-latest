@@ -3,9 +3,12 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "env": {
+    "VITE_API_URL": "@vite_api_url"
+  },
   "rewrites": [
     {
-      "source": "/((?!.*\\..*).*)",
+      "source": "/((?!api|_next|_static|\\.[a-z]+$).*)",
       "destination": "/index.html"
     }
   ]
