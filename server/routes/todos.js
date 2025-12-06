@@ -3,14 +3,43 @@ import Todo from '../models/Todo.js';
 
 const router = express.Router();
 
-// ===== GET ALL TODOS FOR USER =====
-router.get('/:userId', async (req, res) => {
+// Middleware to extract userId from headers
+const getUserIdFromHeaders = (req) => {
+  return req.headers['x-user-id'] || req.body?.userId || req.query?.userId;
+};
+
+// ===== GET ALL TODOS FOR USER (from headers) =====
+router.get('/', async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = getUserIdFromHeaders(req);
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    console.log(`✓ Fetching all todos for userId: ${userId}`);
     const todos = await Todo.find({ userId })
       .sort({ createdAt: -1 })
       .lean();
     
+    console.log(`✅ Found ${todos.length} todos for user ${userId}`);
+    res.json(todos || []);
+  } catch (error) {
+    console.error('❌ Error fetching todos:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ===== GET ALL TODOS FOR USER (by userId parameter - backward compatibility) =====
+router.get('/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(`✓ Fetching all todos for userId (param): ${userId}`);
+    const todos = await Todo.find({ userId })
+      .sort({ createdAt: -1 })
+      .lean();
+    
+    console.log(`✅ Found ${todos.length} todos for user ${userId}`);
     res.json(todos || []);
   } catch (error) {
     console.error('❌ Error fetching todos:', error.message);
@@ -22,6 +51,7 @@ router.get('/:userId', async (req, res) => {
 router.get('/:userId/:date', async (req, res) => {
   try {
     const { userId, date } = req.params;
+    console.log(`✓ Fetching todos by date for userId: ${userId}, date: ${date}`);
     const todos = await Todo.find({
       userId,
       dueDate: date
@@ -29,6 +59,7 @@ router.get('/:userId/:date', async (req, res) => {
       .sort({ dueTime: 1 })
       .lean();
     
+    console.log(`✅ Found ${todos.length} todos for date ${date}`);
     res.json(todos || []);
   } catch (error) {
     console.error('❌ Error fetching todos by date:', error.message);
@@ -53,11 +84,19 @@ router.get('/single/:id', async (req, res) => {
 // ===== CREATE NEW TODO =====
 router.post('/', async (req, res) => {
   try {
-    const { userId, title, description, dueDate, dueTime, priority, category, reminder, reminderTime, linkedTaskId, linkedTaskTitle, tags } = req.body;
-
-    if (!userId || !title) {
-      return res.status(400).json({ error: 'userId and title are required' });
+    const userId = getUserIdFromHeaders(req);
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
     }
+
+    const { title, description, dueDate, dueTime, priority, category, reminder, reminderTime, linkedTaskId, linkedTaskTitle, tags } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ error: 'title is required' });
+    }
+
+    console.log(`✍️ Creating todo for userId: ${userId}`, req.body);
 
     const newTodo = new Todo({
       userId,
@@ -77,6 +116,7 @@ router.post('/', async (req, res) => {
     });
 
     const saved = await newTodo.save();
+    console.log(`✅ Todo created successfully:`, saved);
     res.status(201).json(saved);
   } catch (error) {
     console.error('❌ Error creating todo:', error.message);
@@ -87,8 +127,16 @@ router.post('/', async (req, res) => {
 // ===== UPDATE TODO =====
 router.put('/:id', async (req, res) => {
   try {
+    const userId = getUserIdFromHeaders(req);
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
     const { id } = req.params;
     const updates = req.body;
+
+    console.log(`🔄 Updating todo ${id} for userId: ${userId}`);
 
     // Prevent modifying userId
     delete updates.userId;
@@ -112,6 +160,7 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Todo not found' });
     }
 
+    console.log(`✅ Todo updated successfully:`, updated);
     res.json(updated);
   } catch (error) {
     console.error('❌ Error updating todo:', error.message);
@@ -122,13 +171,22 @@ router.put('/:id', async (req, res) => {
 // ===== DELETE TODO =====
 router.delete('/:id', async (req, res) => {
   try {
+    const userId = getUserIdFromHeaders(req);
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
     const { id } = req.params;
+    console.log(`🗑️ Deleting todo ${id} for userId: ${userId}`);
+    
     const deleted = await Todo.findByIdAndDelete(id);
 
     if (!deleted) {
       return res.status(404).json({ error: 'Todo not found' });
     }
 
+    console.log(`✅ Todo deleted successfully`);
     res.json({ message: 'Todo deleted successfully', data: deleted });
   } catch (error) {
     console.error('❌ Error deleting todo:', error.message);
@@ -140,7 +198,11 @@ router.delete('/:id', async (req, res) => {
 router.delete('/:userId/completed', async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log(`🗑️ Deleting completed todos for userId: ${userId}`);
+    
     const result = await Todo.deleteMany({ userId, completed: true });
+    console.log(`✅ Deleted ${result.deletedCount} completed todos`);
+    
     res.json({ message: 'Completed todos deleted', deletedCount: result.deletedCount });
   } catch (error) {
     console.error('❌ Error deleting completed todos:', error.message);
