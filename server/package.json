@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "tsx watch server.ts",
-    "build": "tsc",
+    "build": "npx tsc",
     "start:ts": "tsx server.ts"
   },
   "dependencies": {
