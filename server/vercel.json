@@ -1,8 +1,5 @@
 {
-  "buildCommand": "npm ci && npm run build",
-  "devCommand": "npm run dev",
   "outputDirectory": "dist",
-  "installCommand": "npm ci",
   "env": {
     "NODE_ENV": "production",
     "MONGODB_URI": "@mongodb_uri",
