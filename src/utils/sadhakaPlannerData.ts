@@ -14,8 +14,8 @@ const getAPIUrl = () => {
   if (isDev) {
     return 'http://localhost:3001/api'; // Local development
   } else {
-    // Production should have VITE_API_URL set
-    return 'https://api.swaryoga.online/api'; // Production fallback
+    // Production - use Vercel backend
+    return 'https://swar-yoga-dec1.vercel.app/api'; // Production backend
   }
 };
 
