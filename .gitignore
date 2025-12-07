@@ -40,3 +40,5 @@ backups/
 # Testing
 coverage/
 .nyc_output
+.vercel
+.env*.local
