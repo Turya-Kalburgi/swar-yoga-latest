@@ -4,9 +4,6 @@
 .env.*.local
 
 # Dependencies
-node_modules
-dist
-build
 
 # IDE
 .vscode
@@ -29,8 +26,9 @@ yarn-error.log*
 .cache
 .eslintcache
 
+node_modules
+build
 # Build output
-/dist
 /build
 
 # Local backups
