@@ -1,0 +1,257 @@
+╔═════════════════════════════════════════════════════════════════════════════╗
+║                  MOCK DATA LOADING QUICK START GUIDE                        ║
+║                        December 9, 2025                                     ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+
+🚀 QUICKEST WAY TO LOAD TEST DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Open Terminal
+  
+  Terminal 1 (Server already running):
+    ✅ Server is running on port 4000
+    ✅ MongoDB is connected
+    
+STEP 2: Load Test Data
+
+  Run this command:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  cd /Users/mohankalburgi/Downloads/swar-yoga-latest-latest-prod-version/server
+  npx tsx add-test-data.ts
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 3: Verify Data Loaded
+
+  You should see output like:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ✅ Connected to MongoDB
+  ✅ Vision Created: 67a0... (ObjectId)
+  📊 Found 1 visions after creation
+  ✅ Goal Created: 67a0... (ObjectId)
+  📊 Found 1 goals after creation
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 4: Test API Endpoints
+
+  Verify data via API:
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  
+  # Check Visions
+  curl http://localhost:4000/api/visions
+  
+  # Check Goals
+  curl http://localhost:4000/api/goals
+  
+  # Check Users
+  curl http://localhost:4000/api/users
+  
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THAT'S IT! 🎉
+Data is now in MongoDB and accessible via API
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AVAILABLE TEST DATA SCRIPTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ADD TEST DATA
+   File: server/add-test-data.ts
+   Purpose: Add sample Vision and Goal
+   Command: npx tsx add-test-data.ts
+   Creates:
+     - 1 Vision for swarsakshi9@gmail.com
+     - 1 Goal for swarsakshi9@gmail.com
+
+2. CHECK DATABASE
+   File: server/check-db.ts
+   Purpose: Verify MongoDB connection
+   Command: npx tsx check-db.ts
+   Shows:
+     - Database connection status
+     - Available collections
+
+3. CHECK USER DATA
+   File: server/check-user-data.ts
+   Purpose: List all users and their data
+   Command: npx tsx check-user-data.ts
+   Shows:
+     - User count
+     - User details
+     - Last created/updated
+
+4. CHECK USERS ONLY
+   File: server/check-users-only.ts
+   Purpose: Simple user listing
+   Command: npx tsx check-users-only.ts
+   Shows:
+     - List of all users
+     - User count
+
+5. CHECK VISIONS
+   File: server/check-visions.ts
+   Purpose: List all visions
+   Command: npx tsx check-visions.ts
+   Shows:
+     - All visions in database
+     - Vision count
+     - User associations
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AVAILABLE BACKUP DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Backup File: backups/backup-2025-12-05.json
+  Size: 7.2 KB
+  Date: December 5, 2025
+  Contains:
+    ✓ 3 Workshop records
+    ✓ Workshop metadata (instructor, dates, pricing)
+    ✓ Categories and modes
+    ✓ Participant info
+
+Sample Workshop Data:
+  1. "Swar Yoga Basic Hindi"
+     Instructor: Mohan Kalburgi
+     Dates: Dec 26-31, 2025
+     Duration: 5 days
+     Price: ₹100 / NPR 160 / $5
+     Max Participants: 50
+     Category: Basic Swar Yoga Master Class
+  
+  2. "Post Test 2"
+     Instructor: Admin2
+     Dates: Dec 20-25, 2025
+     Price: ₹100 / NPR 160 / $5
+     Max Participants: 50
+  
+  3. "Test Workshop"
+     Instructor: Admin
+     Dates: Dec 15-20, 2025
+     Price: ₹100 / NPR 160 / $5
+     Max Participants: 50
+
+How to Use Backup:
+  mongoimport --uri="your_mongodb_uri" \
+    --db swar-yoga-db \
+    --collection workshops \
+    --jsonArray \
+    --file backups/backup-2025-12-05.json
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MANUAL API DATA INSERTION (IF SCRIPTS DON'T WORK)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CREATE A VISION:
+  curl -X POST http://localhost:4000/api/visions \
+    -H "Content-Type: application/json" \
+    -d '{
+      "userId": "test@example.com",
+      "title": "Career Vision 2025",
+      "description": "Build successful software products",
+      "priority": "High",
+      "status": "In Progress"
+    }'
+
+CREATE A GOAL:
+  curl -X POST http://localhost:4000/api/goals \
+    -H "Content-Type: application/json" \
+    -d '{
+      "userId": "test@example.com",
+      "title": "Learn Kubernetes",
+      "description": "Master container orchestration",
+      "priority": "Medium",
+      "status": "Not Started"
+    }'
+
+CREATE A TASK:
+  curl -X POST http://localhost:4000/api/tasks \
+    -H "Content-Type: application/json" \
+    -d '{
+      "userId": "test@example.com",
+      "title": "Complete Kubernetes course",
+      "description": "Finish Udemy Kubernetes course",
+      "priority": "High",
+      "status": "In Progress"
+    }'
+
+CREATE A TODO:
+  curl -X POST http://localhost:4000/api/todos \
+    -H "Content-Type: application/json" \
+    -d '{
+      "userId": "test@example.com",
+      "title": "Study k8s basics",
+      "completed": false
+    }'
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FRONTEND TESTING WITH MOCK DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AFTER LOADING MOCK DATA:
+
+1. Start Frontend (in separate terminal):
+   npm run dev
+
+2. Open http://localhost:5173
+
+3. Log in with test account:
+   Email: swarsakshi9@gmail.com
+   (Or create new account)
+
+4. Navigate to Life Planner:
+   - You should see the Vision you created
+   - You should see the Goal you created
+
+5. Test Features:
+   - Create new Vision
+   - Create new Goal
+   - Create new Task
+   - Mark items complete
+   - Edit existing items
+   - Verify data persists
+
+6. Test Swar Calendar:
+   - Select date and location
+   - Should load Hindu calendar calculations
+   - Check Tithi, Nakshatra, Yoga, etc.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+"Cannot find module 'uuid'" during script run:
+  Solution: npm install in server folder
+  cd server && npm install
+
+MongoDB connection error:
+  Check: Is MongoDB running?
+  For local: mongosh or mongo
+  For Atlas: Is MONGODB_URI set correctly?
+  Run: npx tsx check-db.ts to verify
+
+API returns empty array:
+  - Data might not be loaded yet
+  - Run: npx tsx add-test-data.ts
+  - Wait for completion
+  - Try API again
+
+Server not responding on port 4000:
+  Check: lsof -i :4000
+  If not running: npm run start:backend
+  Or: cd server && node server.js
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUMMARY CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Server running on localhost:4000
+✅ MongoDB connected and responding
+✅ All API endpoints accessible
+✅ Contact records (6) already in database
+✅ Test data scripts available
+✅ Backup data available
+✅ Ready to load mock data
+
+Next: Run: npx tsx server/add-test-data.ts
+
+═══════════════════════════════════════════════════════════════════════════════
