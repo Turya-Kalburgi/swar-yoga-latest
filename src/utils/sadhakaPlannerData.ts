@@ -12,7 +12,7 @@ const getAPIUrl = () => {
   const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   
   if (isDev) {
-    return 'http://localhost:3001/api'; // Local development
+    return 'http://localhost:4000/api'; // Local development - backend on port 4000
   } else {
     // Production - use Vercel backend
     return 'https://swar-yoga-dec1.vercel.app/api'; // Production backend
@@ -33,9 +33,27 @@ const apiClient = axios.create({
 
 // Add user ID to all requests
 apiClient.interceptors.request.use((config) => {
-  const userIdHeader = localStorage.getItem('userId');
-  if (userIdHeader) {
-    config.headers['X-User-ID'] = userIdHeader;
+  try {
+    // Try to get userId from localStorage directly first
+    let userId = localStorage.getItem('userId');
+    
+    // If not found, try to extract from user object in localStorage
+    if (!userId) {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const userObj = JSON.parse(userStr);
+        userId = userObj.id || userObj._id;
+      }
+    }
+    
+    if (userId) {
+      config.headers['X-User-ID'] = userId;
+      console.log(`📤 API Request with User ID: ${userId}`);
+    } else {
+      console.warn('⚠️ No user ID found in localStorage for API request');
+    }
+  } catch (error) {
+    console.error('❌ Error getting user ID:', error);
   }
   return config;
 });

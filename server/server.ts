@@ -22,6 +22,7 @@ import dailyPlanRoutes from './routes/dailyplans.js';
 import accountingRoutes from './routes/accounting';
 import checkoutRoutes from './routes/checkout';
 import connectDB from './config/db.js';
+import { initializeBackupService } from './services/backupService.js';
 import { 
   createDailyBackup, 
   listBackups, 
@@ -78,6 +79,9 @@ interface BackupRestoreRequest extends Request {
   try {
     await connectDB();
     console.log('✅ MongoDB initialization successful');
+    
+    // Initialize backup service (automated daily backups)
+    initializeBackupService();
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('❌ MongoDB initialization failed:', errorMessage);

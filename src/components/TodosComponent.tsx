@@ -1,65 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Plus, Edit, Trash2, Calendar, Link as LinkIcon, AlertCircle, Loader } from 'lucide-react';
+import { CheckCircle2, Plus, Edit, Trash2, Calendar, AlertCircle, Loader } from 'lucide-react';
 import { toast } from 'react-toastify';
-
-interface Todo {
-  id: string;
-  userId: string;
-  taskId?: string;
-  taskTitle?: string;
-  text: string;
-  completed: boolean;
-  dueDate?: string;
-  priority?: 'Low' | 'Medium' | 'High';
-  createdAt?: string;
-}
-
-interface Task {
-  id: string;
-  title: string;
-}
+import { todoAPI, Todo, formatDate } from '../utils/sadhakaPlannerData';
+import { useAuth } from '../context/AuthContext';
 
 const TodosComponent: React.FC = () => {
+  const { user } = useAuth();
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
 
   const [formData, setFormData] = useState({
-    text: '',
-    taskId: '',
+    title: '',
+    description: '',
     dueDate: '',
     priority: 'Medium' as 'Low' | 'Medium' | 'High',
-    completed: false
+    status: 'Pending' as 'Pending' | 'Completed'
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    loadData();
-  }, [user.id]);
+    if (user?.id) {
+      loadTodos();
+    }
+  }, [user?.id]);
 
-  const loadData = async () => {
+  const loadTodos = async () => {
     try {
       setLoading(true);
-
-      // Load tasks first
-      const tasksData = await loadTasks();
-      setTasks(tasksData);
-
-      // Load todos
-      const todosData = await loadTodos();
-
-      // Enrich todos with task titles
-      const enrichedTodos = todosData.map(t => ({
-        ...t,
-        taskTitle: tasksData.find(task => task.id === t.taskId)?.title || 'Unlinked'
-      }));
-
-      setTodos(enrichedTodos);
+      const data = await todoAPI.getAll(user?.id || '');
+      setTodos(data);
     } catch (error) {
       console.error('❌ Error loading todos:', error);
       toast.error('Failed to load todos');
@@ -68,33 +41,11 @@ const TodosComponent: React.FC = () => {
     }
   };
 
-  const loadTasks = async () => {
-    try {
-      const storageKey = `sadhaka_tasks_${user.id}`;
-      const stored = localStorage.getItem(storageKey);
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('❌ Error loading tasks:', error);
-      return [];
-    }
-  };
-
-  const loadTodos = async () => {
-    try {
-      const storageKey = `sadhaka_todos_${user.id}`;
-      const stored = localStorage.getItem(storageKey);
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('❌ Error loading todos:', error);
-      return [];
-    }
-  };
-
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.text.trim()) {
-      newErrors.text = 'Todo text is required';
+    if (!formData.title.trim()) {
+      newErrors.title = 'Todo title is required';
     }
 
     setErrors(newErrors);
@@ -110,64 +61,46 @@ const TodosComponent: React.FC = () => {
     }
 
     try {
-      const storageKey = `sadhaka_todos_${user.id}`;
-      const existingTodos = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      const todoData: Todo = {
+        userId: user?.id || '',
+        title: formData.title,
+        description: formData.description,
+        dueDate: formData.dueDate,
+        priority: formData.priority,
+        status: formData.status,
+        completed: formData.status === 'Completed'
+      };
 
       if (editingId) {
-        // Update
-        const index = existingTodos.findIndex((t: Todo) => t.id === editingId);
-        if (index !== -1) {
-          existingTodos[index] = {
-            ...existingTodos[index],
-            text: formData.text,
-            taskId: formData.taskId,
-            dueDate: formData.dueDate,
-            priority: formData.priority,
-            completed: formData.completed
-          };
-        }
-        console.log(`✅ Todo updated: ${formData.text}`);
+        todoData.id = editingId;
+        await todoAPI.update(editingId, todoData);
+        toast.success('Todo updated!');
       } else {
-        // Create
-        const newTodo: Todo = {
-          id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          userId: user.id,
-          text: formData.text,
-          taskId: formData.taskId,
-          dueDate: formData.dueDate,
-          priority: formData.priority,
-          completed: false,
-          createdAt: new Date().toISOString()
-        };
-        existingTodos.push(newTodo);
-        console.log(`✅ Todo created: ${formData.text}`);
+        await todoAPI.create(todoData);
+        toast.success('Todo created!');
       }
 
-      localStorage.setItem(storageKey, JSON.stringify(existingTodos));
-      await loadData();
-
-      toast.success(editingId ? 'Todo updated!' : 'Todo created!');
+      await loadTodos();
       setShowAddModal(false);
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error saving todo:', error);
-      toast.error('Failed to save todo');
+      toast.error(error.message || 'Failed to save todo');
     }
   };
 
-  const handleToggle = async (id: string, completed: boolean) => {
+  const handleToggle = async (todo: Todo) => {
     try {
-      const storageKey = `sadhaka_todos_${user.id}`;
-      const todosData = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      const index = todosData.findIndex((t: Todo) => t.id === id);
-      if (index !== -1) {
-        todosData[index].completed = !completed;
-      }
-      localStorage.setItem(storageKey, JSON.stringify(todosData));
-      await loadData();
-      console.log(`✅ Todo toggled`);
-    } catch (error) {
+      const newStatus = todo.status === 'Completed' ? 'Pending' : 'Completed';
+      await todoAPI.update(todo.id || '', {
+        ...todo,
+        status: newStatus,
+        completed: newStatus === 'Completed'
+      });
+      await loadTodos();
+    } catch (error: any) {
       console.error('❌ Error toggling todo:', error);
+      toast.error('Failed to update todo');
     }
   };
 
@@ -175,34 +108,41 @@ const TodosComponent: React.FC = () => {
     if (!window.confirm('Delete this todo?')) return;
 
     try {
-      const storageKey = `sadhaka_todos_${user.id}`;
-      const todosData = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      const filtered = todosData.filter((t: Todo) => t.id !== id);
-      localStorage.setItem(storageKey, JSON.stringify(filtered));
-
-      console.log(`✅ Todo deleted`);
-      await loadData();
+      await todoAPI.delete(id, user?.id || '');
+      await loadTodos();
       toast.success('Todo deleted!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error deleting todo:', error);
       toast.error('Failed to delete todo');
     }
   };
 
+  const handleEdit = (todo: Todo) => {
+    setFormData({
+      title: todo.title,
+      description: todo.description || '',
+      dueDate: todo.dueDate || '',
+      priority: todo.priority || 'Medium',
+      status: todo.status || 'Pending'
+    });
+    setEditingId(todo.id || null);
+    setShowAddModal(true);
+  };
+
   const resetForm = () => {
     setFormData({
-      text: '',
-      taskId: '',
+      title: '',
+      description: '',
       dueDate: '',
       priority: 'Medium',
-      completed: false
+      status: 'Pending'
     });
     setErrors({});
     setEditingId(null);
   };
 
   const filteredTodos = todos.filter(t =>
-    filter === 'all' || (filter === 'completed' ? t.completed : !t.completed)
+    filter === 'all' || (filter === 'completed' ? t.status === 'Completed' : t.status !== 'Completed')
   );
 
   const priorityColor = {
@@ -214,7 +154,7 @@ const TodosComponent: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader className="w-8 h-8 animate-spin text-green-600" />
       </div>
     );
   }
@@ -225,7 +165,10 @@ const TodosComponent: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <CheckCircle2 className="w-8 h-8 text-green-600" />
-          <h2 className="text-3xl font-bold text-gray-800">My Todos</h2>
+          <div>
+            <h2 className="text-3xl font-bold text-gray-800">Todos</h2>
+            <p className="text-sm text-gray-600">Total: {todos.length} | Completed: {todos.filter(t => t.status === 'Completed').length}</p>
+          </div>
         </div>
         <button
           onClick={() => {
@@ -268,33 +211,30 @@ const TodosComponent: React.FC = () => {
             <div
               key={todo.id}
               className={`flex items-center gap-4 p-4 rounded-lg border transition ${
-                todo.completed
+                todo.status === 'Completed'
                   ? 'bg-gray-50 border-gray-200 opacity-75'
                   : 'bg-white border-gray-300 hover:shadow-md'
               }`}
             >
               <button
-                onClick={() => handleToggle(todo.id, todo.completed)}
+                onClick={() => handleToggle(todo)}
                 className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition ${
-                  todo.completed
+                  todo.status === 'Completed'
                     ? 'bg-green-500 border-green-500'
                     : 'border-gray-300 hover:border-green-500'
                 }`}
               >
-                {todo.completed && <CheckCircle2 className="w-5 h-5 text-white" />}
+                {todo.status === 'Completed' && <CheckCircle2 className="w-5 h-5 text-white" />}
               </button>
 
               <div className="flex-1">
-                <p className={`${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                  {todo.text}
+                <p className={`${todo.status === 'Completed' ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                  {todo.title}
                 </p>
-                <div className="flex gap-2 mt-1 flex-wrap">
-                  {todo.taskId && (
-                    <span className="flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                      <LinkIcon className="w-3 h-3" />
-                      {todo.taskTitle}
-                    </span>
-                  )}
+                {todo.description && (
+                  <p className="text-sm text-gray-600 mt-1">{todo.description}</p>
+                )}
+                <div className="flex gap-2 mt-2 flex-wrap">
                   {todo.priority && (
                     <span className={`text-xs px-2 py-1 rounded ${priorityColor[todo.priority]}`}>
                       {todo.priority}
@@ -303,7 +243,7 @@ const TodosComponent: React.FC = () => {
                   {todo.dueDate && (
                     <span className="flex items-center gap-1 text-xs text-gray-600">
                       <Calendar className="w-3 h-3" />
-                      {new Date(todo.dueDate).toLocaleDateString()}
+                      {formatDate(todo.dueDate)}
                     </span>
                   )}
                 </div>
@@ -311,23 +251,13 @@ const TodosComponent: React.FC = () => {
 
               <div className="flex gap-2">
                 <button
-                  onClick={() => {
-                    setFormData({
-                      text: todo.text,
-                      taskId: todo.taskId || '',
-                      dueDate: todo.dueDate || '',
-                      priority: todo.priority || 'Medium',
-                      completed: todo.completed
-                    });
-                    setEditingId(todo.id);
-                    setShowAddModal(true);
-                  }}
+                  onClick={() => handleEdit(todo)}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded transition"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(todo.id)}
+                  onClick={() => handleDelete(todo.id || '')}
                   className="p-2 text-red-600 hover:bg-red-50 rounded transition"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -347,40 +277,35 @@ const TodosComponent: React.FC = () => {
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Todo Text */}
+              {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Todo Text *
+                  Todo Title *
                 </label>
-                <textarea
-                  value={formData.text}
-                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="What do you need to do?"
-                  rows={3}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
-                    errors.text ? 'border-red-500' : 'border-gray-300'
+                    errors.title ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
-                {errors.text && <p className="text-red-600 text-sm mt-1">{errors.text}</p>}
+                {errors.title && <p className="text-red-600 text-sm mt-1">{errors.title}</p>}
               </div>
 
-              {/* Task Link */}
+              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Link to Task (Optional)
+                  Description (Optional)
                 </label>
-                <select
-                  value={formData.taskId}
-                  onChange={(e) => setFormData({ ...formData, taskId: e.target.value })}
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Add any details..."
+                  rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">No task link</option>
-                  {tasks.map(task => (
-                    <option key={task.id} value={task.id}>
-                      {task.title}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               {/* Priority */}
@@ -416,9 +341,9 @@ const TodosComponent: React.FC = () => {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
+                  className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-medium"
                 >
-                  {editingId ? 'Update' : 'Create'}
+                  {editingId ? 'Update Todo' : 'Create Todo'}
                 </button>
                 <button
                   type="button"

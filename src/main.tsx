@@ -7,26 +7,29 @@ import App from './App.tsx';
 import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { AdminProvider } from './context/AdminContext';
+import { AdminAuthProvider } from './context/AdminAuthContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
-        <AdminProvider>
-          <App />
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-          />
-        </AdminProvider>
+        <AdminAuthProvider>
+          <AdminProvider>
+            <App />
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
+          </AdminProvider>
+        </AdminAuthProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

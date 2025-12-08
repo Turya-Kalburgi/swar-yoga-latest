@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, Eye, EyeOff, Lock, User, AlertCircle } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 const AdminSignIn = () => {
   const navigate = useNavigate();
+  const { adminLogin } = useAdminAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -27,16 +28,12 @@ const AdminSignIn = () => {
     try {
       // Check credentials
       if (formData.username === 'admin' && formData.password === 'Mohan@123pk') {
-        // Store admin session
-        localStorage.setItem('adminUser', JSON.stringify({
+        // Store admin session using context
+        adminLogin({
           username: 'admin',
           name: 'Admin',
-          role: 'admin',
-          timestamp: new Date().toISOString()
-        }));
-        
-        // Show success message
-        toast.success('Admin login successful');
+          role: 'admin'
+        });
         
         // Redirect to admin dashboard
         navigate('/admin');

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import { 
   Menu, 
   X, 
@@ -15,33 +16,22 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
+  const { adminUser, isAdminAuthenticated, adminLogout } = useAdminAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default to true since parent already protects
 
-  // Quick re-check but don't redirect (parent handles that)
+  // Redirect if not authenticated
   useEffect(() => {
-    const user = localStorage.getItem('adminUser');
-    setIsAuthenticated(!!user);
-  }, []);
+    if (!isAdminAuthenticated) {
+      navigate('/admin-login');
+    }
+  }, [isAdminAuthenticated, navigate]);
 
   const handleLogout = () => {
     if (confirm('Are you sure you want to sign out?')) {
-      localStorage.removeItem('adminUser');
-      localStorage.removeItem('adminAuth');
-      navigate('/admin');
+      adminLogout();
+      navigate('/admin-login');
     }
   };
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Authenticating...</p>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

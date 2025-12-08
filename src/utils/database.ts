@@ -10,7 +10,7 @@ const API_BASE_URL = (() => {
   
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
     console.log('📡 Using localhost API (development)');
-    return 'http://localhost:3001/api';
+    return 'http://localhost:4000/api';
   }
   
   // Default for production/Netlify - use current domain or custom backend
