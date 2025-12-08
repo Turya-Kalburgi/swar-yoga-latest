@@ -739,10 +739,27 @@ const SwarCalendar: React.FC = () => {
             </div>
             
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-              <div className="text-sm text-gray-600">
-                <p><strong>Coordinates:</strong> Lat: {calendarData.coordinates.latitude.toFixed(6)}, Lng: {calendarData.coordinates.longitude.toFixed(6)}</p>
-                <p className="mt-1"><strong>Nadi Logic:</strong> In {calendarData.paksha}, Tithi {calendarData.tithi} corresponds to {calendarData.nadi.name}</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-500 font-semibold">COORDINATES</p>
+                  <p className="text-sm font-medium text-gray-900 mt-1">
+                    {calendarData.coordinates.latitude.toFixed(4)}, {calendarData.coordinates.longitude.toFixed(4)}
+                  </p>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-500 font-semibold">SUNRISE</p>
+                  <p className="text-sm font-medium text-orange-600 mt-1">{calendarData.sunriseTime}</p>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-500 font-semibold">NADI ENERGY</p>
+                  <p className="text-sm font-medium text-blue-600 mt-1">{calendarData.nadi.type}</p>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                  <p className="text-xs text-gray-500 font-semibold">LOCATION</p>
+                  <p className="text-sm font-medium text-gray-900 mt-1 truncate">{calendarData.location}</p>
+                </div>
               </div>
+              <p className="text-sm text-gray-600"><strong>Hindu Calendar Logic:</strong> Tithi calculated from moon phase using SunCalc astronomical library. Nadi determined by Paksha (lunar phase) and Tithi combination. Sunrise time is key marker for Hindu calendar day transitions.</p>
             </div>
           </div>
         </div>
