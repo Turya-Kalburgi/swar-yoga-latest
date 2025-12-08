@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Search, Sun, Moon, Info, Loader, Download, CalendarDays } from 'lucide-react';
 import * as SunCalc from 'suncalc';
 import { fetchHinduCalendarData, calculateLocalHinduCalendar } from '../utils/hinduCalendarAPI';
+import { countries, capitalsByCountry } from '../data/countriesData';
 
 interface CalendarData {
   date: string;
@@ -50,146 +51,22 @@ const SwarCalendar: React.FC = () => {
   const [downloadEndDate, setDownloadEndDate] = useState<string>('');
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
 
-  // Countries list (A-Z)
-  const countries = [
-    'Afghanistan', 'Albania', 'Algeria', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan',
-    'Bahrain', 'Bangladesh', 'Belarus', 'Belgium', 'Bolivia', 'Bosnia and Herzegovina', 'Brazil', 'Bulgaria',
-    'Cambodia', 'Canada', 'Chile', 'China', 'Colombia', 'Croatia', 'Czech Republic',
-    'Denmark', 'Dominican Republic', 'Ecuador', 'Egypt', 'Estonia', 'Ethiopia',
-    'Finland', 'France', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Guatemala',
-    'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy',
-    'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kuwait', 'Kyrgyzstan',
-    'Latvia', 'Lebanon', 'Libya', 'Lithuania', 'Luxembourg',
-    'Malaysia', 'Mexico', 'Moldova', 'Mongolia', 'Morocco', 'Myanmar',
-    'Nepal', 'Netherlands', 'New Zealand', 'Nigeria', 'North Korea', 'Norway',
-    'Pakistan', 'Palestine', 'Peru', 'Philippines', 'Poland', 'Portugal',
-    'Qatar', 'Romania', 'Russia', 'Saudi Arabia', 'Serbia', 'Singapore', 'Slovakia', 'Slovenia', 'South Africa', 'South Korea', 'Spain', 'Sri Lanka', 'Sweden', 'Switzerland', 'Syria',
-    'Taiwan', 'Tajikistan', 'Thailand', 'Turkey', 'Turkmenistan',
-    'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
-    'Venezuela', 'Vietnam', 'Yemen', 'Zimbabwe'
-  ];
 
-  // States/Provinces by country
-  const statesByCountry: Record<string, string[]> = {
-    'India': [
-      'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana',
-      'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
-      'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
-      'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-      'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
-      'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
-    ],
-    'United States': [
-      'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
-      'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
-      'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
-      'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
-      'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
-      'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
-      'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
-    ],
-    'United Kingdom': ['England', 'Scotland', 'Wales', 'Northern Ireland'],
-    'Canada': [
-      'Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador',
-      'Northwest Territories', 'Nova Scotia', 'Nunavut', 'Ontario', 'Prince Edward Island',
-      'Quebec', 'Saskatchewan', 'Yukon'
-    ],
-    'Australia': [
-      'Australian Capital Territory', 'New South Wales', 'Northern Territory', 'Queensland',
-      'South Australia', 'Tasmania', 'Victoria', 'Western Australia'
-    ],
-    'Germany': [
-      'Baden-Württemberg', 'Bavaria', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hesse',
-      'Lower Saxony', 'Mecklenburg-Vorpommern', 'North Rhine-Westphalia', 'Rhineland-Palatinate',
-      'Saarland', 'Saxony', 'Saxony-Anhalt', 'Schleswig-Holstein', 'Thuringia'
-    ]
+
+  // Get states for selected country
+  const getStatesForCountry = (country: string): string[] => {
+    if (capitalsByCountry[country]) {
+      return Object.keys(capitalsByCountry[country]);
+    }
+    return [];
   };
 
-  // Capital cities by state/country with coordinates
-  const capitalsByState: Record<string, Record<string, { name: string; lat: number; lng: number }>> = {
-    'India': {
-      'Andhra Pradesh': { name: 'Amaravati', lat: 16.5062, lng: 80.6480 },
-      'Arunachal Pradesh': { name: 'Itanagar', lat: 27.0844, lng: 93.6053 },
-      'Assam': { name: 'Dispur', lat: 26.1445, lng: 91.7898 },
-      'Bihar': { name: 'Patna', lat: 25.5941, lng: 85.1376 },
-      'Chhattisgarh': { name: 'Raipur', lat: 21.2514, lng: 81.6296 },
-      'Goa': { name: 'Panaji', lat: 15.4909, lng: 73.8278 },
-      'Gujarat': { name: 'Gandhinagar', lat: 23.2156, lng: 72.6369 },
-      'Haryana': { name: 'Chandigarh', lat: 30.7333, lng: 76.7794 },
-      'Himachal Pradesh': { name: 'Shimla', lat: 31.1048, lng: 77.1734 },
-      'Jharkhand': { name: 'Ranchi', lat: 23.3441, lng: 85.3096 },
-      'Karnataka': { name: 'Bengaluru', lat: 12.9716, lng: 77.5946 },
-      'Kerala': { name: 'Thiruvananthapuram', lat: 8.5241, lng: 76.9366 },
-      'Madhya Pradesh': { name: 'Bhopal', lat: 23.2599, lng: 77.4126 },
-      'Maharashtra': { name: 'Mumbai', lat: 19.0760, lng: 72.8777 },
-      'Manipur': { name: 'Imphal', lat: 24.8170, lng: 93.9368 },
-      'Meghalaya': { name: 'Shillong', lat: 25.5788, lng: 91.8933 },
-      'Mizoram': { name: 'Aizawl', lat: 23.7271, lng: 92.7176 },
-      'Nagaland': { name: 'Kohima', lat: 25.6751, lng: 94.1086 },
-      'Odisha': { name: 'Bhubaneswar', lat: 20.2961, lng: 85.8245 },
-      'Punjab': { name: 'Chandigarh', lat: 30.7333, lng: 76.7794 },
-      'Rajasthan': { name: 'Jaipur', lat: 26.9124, lng: 75.7873 },
-      'Sikkim': { name: 'Gangtok', lat: 27.3389, lng: 88.6065 },
-      'Tamil Nadu': { name: 'Chennai', lat: 13.0827, lng: 80.2707 },
-      'Telangana': { name: 'Hyderabad', lat: 17.3850, lng: 78.4867 },
-      'Tripura': { name: 'Agartala', lat: 23.8315, lng: 91.2868 },
-      'Uttar Pradesh': { name: 'Lucknow', lat: 26.8467, lng: 80.9462 },
-      'Uttarakhand': { name: 'Dehradun', lat: 30.3165, lng: 78.0322 },
-      'West Bengal': { name: 'Kolkata', lat: 22.5726, lng: 88.3639 },
-      'Delhi': { name: 'New Delhi', lat: 28.6139, lng: 77.2090 }
-    },
-    'United States': {
-      'Alabama': { name: 'Montgomery', lat: 32.3617, lng: -86.2792 },
-      'Alaska': { name: 'Juneau', lat: 58.3019, lng: -134.4197 },
-      'Arizona': { name: 'Phoenix', lat: 33.4484, lng: -112.0740 },
-      'Arkansas': { name: 'Little Rock', lat: 34.7465, lng: -92.2896 },
-      'California': { name: 'Sacramento', lat: 38.5816, lng: -121.4944 },
-      'Colorado': { name: 'Denver', lat: 39.7392, lng: -104.9903 },
-      'Connecticut': { name: 'Hartford', lat: 41.7658, lng: -72.6734 },
-      'Delaware': { name: 'Dover', lat: 39.1612, lng: -75.5264 },
-      'Florida': { name: 'Tallahassee', lat: 30.4518, lng: -84.2807 },
-      'Georgia': { name: 'Atlanta', lat: 33.7490, lng: -84.3880 },
-      'Hawaii': { name: 'Honolulu', lat: 21.3099, lng: -157.8581 },
-      'Idaho': { name: 'Boise', lat: 43.6150, lng: -116.2023 },
-      'Illinois': { name: 'Springfield', lat: 39.7817, lng: -89.6501 },
-      'Indiana': { name: 'Indianapolis', lat: 39.7684, lng: -86.1581 },
-      'Iowa': { name: 'Des Moines', lat: 41.5868, lng: -93.6250 },
-      'Kansas': { name: 'Topeka', lat: 39.0473, lng: -95.6890 },
-      'Kentucky': { name: 'Frankfort', lat: 38.2009, lng: -84.8733 },
-      'Louisiana': { name: 'Baton Rouge', lat: 30.4515, lng: -91.1871 },
-      'Maine': { name: 'Augusta', lat: 44.3106, lng: -69.7795 },
-      'Maryland': { name: 'Annapolis', lat: 38.9784, lng: -76.5951 },
-      'Massachusetts': { name: 'Boston', lat: 42.3601, lng: -71.0589 },
-      'Michigan': { name: 'Lansing', lat: 42.3314, lng: -84.5467 },
-      'Minnesota': { name: 'Saint Paul', lat: 44.9537, lng: -93.0900 },
-      'Mississippi': { name: 'Jackson', lat: 32.2988, lng: -90.1848 },
-      'Missouri': { name: 'Jefferson City', lat: 38.5767, lng: -92.1735 },
-      'Montana': { name: 'Helena', lat: 46.5958, lng: -112.0362 },
-      'Nebraska': { name: 'Lincoln', lat: 40.8136, lng: -96.7026 },
-      'Nevada': { name: 'Carson City', lat: 39.1638, lng: -119.7674 },
-      'New Hampshire': { name: 'Concord', lat: 43.2081, lng: -71.5376 },
-      'New Jersey': { name: 'Trenton', lat: 40.2206, lng: -74.7565 },
-      'New Mexico': { name: 'Santa Fe', lat: 35.6870, lng: -105.9378 },
-      'New York': { name: 'Albany', lat: 42.6526, lng: -73.7562 },
-      'North Carolina': { name: 'Raleigh', lat: 35.7796, lng: -78.6382 },
-      'North Dakota': { name: 'Bismarck', lat: 46.8083, lng: -100.7837 },
-      'Ohio': { name: 'Columbus', lat: 39.9612, lng: -82.9988 },
-      'Oklahoma': { name: 'Oklahoma City', lat: 35.4676, lng: -97.5164 },
-      'Oregon': { name: 'Salem', lat: 44.9429, lng: -123.0351 },
-      'Pennsylvania': { name: 'Harrisburg', lat: 40.2732, lng: -76.8839 },
-      'Rhode Island': { name: 'Providence', lat: 41.8240, lng: -71.4128 },
-      'South Carolina': { name: 'Columbia', lat: 34.0000, lng: -81.0348 },
-      'South Dakota': { name: 'Pierre', lat: 44.2998, lng: -100.3510 },
-      'Tennessee': { name: 'Nashville', lat: 36.1627, lng: -86.7816 },
-      'Texas': { name: 'Austin', lat: 30.2672, lng: -97.7431 },
-      'Utah': { name: 'Salt Lake City', lat: 40.7608, lng: -111.8910 },
-      'Vermont': { name: 'Montpelier', lat: 44.2601, lng: -72.5806 },
-      'Virginia': { name: 'Richmond', lat: 37.5407, lng: -77.4360 },
-      'Washington': { name: 'Olympia', lat: 47.0379, lng: -122.9015 },
-      'West Virginia': { name: 'Charleston', lat: 38.3498, lng: -81.6326 },
-      'Wisconsin': { name: 'Madison', lat: 43.0731, lng: -89.4012 },
-      'Wyoming': { name: 'Cheyenne', lat: 41.1400, lng: -104.8197 }
+  // Get capitals for selected state
+  const getCapitalsForState = (country: string, state: string): string[] => {
+    if (capitalsByCountry[country] && capitalsByCountry[country][state]) {
+      return [capitalsByCountry[country][state].name];
     }
+    return [];
   };
 
   // Set default end date to one month from start date
@@ -203,25 +80,10 @@ const SwarCalendar: React.FC = () => {
     }
   }, [downloadStartDate]);
 
-  // Get states for selected country
-  const getStatesForCountry = (country: string): string[] => {
-    return statesByCountry[country] || ['State 1', 'State 2', 'State 3'];
-  };
-
-  // Get capitals for selected state
-  const getCapitalsForState = (country: string, state: string): string[] => {
-    const stateCapitals = capitalsByState[country];
-    if (stateCapitals && stateCapitals[state]) {
-      return [stateCapitals[state].name];
-    }
-    return ['Capital City 1', 'Capital City 2', 'Capital City 3'];
-  };
-
   // Update coordinates when capital is selected
   const updateCoordinates = (country: string, state: string, capital: string) => {
-    const stateCapitals = capitalsByState[country];
-    if (stateCapitals && stateCapitals[state]) {
-      const coords = stateCapitals[state];
+    if (capitalsByCountry[country] && capitalsByCountry[country][state]) {
+      const coords = capitalsByCountry[country][state];
       setLatitude(coords.lat);
       setLongitude(coords.lng);
     } else {
