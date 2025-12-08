@@ -101,7 +101,7 @@ app.get('/', (req: Request, res: Response): void => {
 });
 
 // ⭐ IMPORTANT: Workshop Routes MUST come FIRST before generic routes
-app.use('/api/admin/workshops', workshopRoutes);
+app.use('/api/workshops', workshopRoutes);
 
 // ===== MONGODB ROUTES =====
 app.use('/api/visions', visionRoutes);
