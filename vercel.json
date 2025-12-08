@@ -3,13 +3,19 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
-  "env": {
-    "VITE_API_URL": "@vite_api_url"
-  },
+  "framework": "vite",
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "MONGODB_URI": "@MONGODB_URI",
+    "PORT": "4000"
+  }
 }
