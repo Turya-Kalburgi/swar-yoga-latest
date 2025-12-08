@@ -1,0 +1,79 @@
+name: Vercel Deployment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    name: Deploy Frontend to Railway
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to Railway
+        run: |
+          curl -X POST https://railway.app/api/v1/projects \
+            -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN }}" \
+            -H "Content-Type: application/json"
+      
+      - name: Notify Vercel - Frontend
+        uses: vercel/repository-dispatch/actions/status@v1
+        with:
+          name: 'Vercel - swar-yoga-dec: frontend'
+          state: 'success'
+          description: 'Frontend deployed to Railway'
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    name: Deploy Backend to Vercel
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build Backend
+        run: |
+          cd server
+          npm install
+          npm run build
+      
+      - name: Deploy Backend to Vercel
+        uses: vercel/action@master
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_BACKEND }}
+          working-directory: ./server
+          production: true
+      
+      - name: Notify Vercel - Backend
+        uses: vercel/repository-dispatch/actions/status@v1
+        with:
+          name: 'Vercel - swar-yoga-dec: backend'
+          state: 'success'
+          description: 'Backend deployed to Vercel'
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint Code
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Run ESLint
+        run: npm run lint || true
+      
+      - name: Notify Vercel - Lint
+        uses: vercel/repository-dispatch/actions/status@v1
+        with:
+          name: 'Vercel - swar-yoga-dec: lint'

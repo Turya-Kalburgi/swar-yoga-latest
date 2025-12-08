@@ -1,0 +1,29 @@
+# 🟢 SITE OPEN - USE PORT 5174
+
+## ✅ OPEN NOW
+
+```
+http://localhost:5174
+```
+
+---
+
+## 🔐 ADMIN LOGIN
+
+```
+http://localhost:5174/admin
+
+Username: admin
+Password: Mohan@123pk
+```
+
+---
+
+## ⚡ No wait time - use immediately!
+
+Server is already running and ready.
+
+---
+
+**Status:** ✅ Live
+**Port:** 5174 (changed from 5173 - that port was in use)

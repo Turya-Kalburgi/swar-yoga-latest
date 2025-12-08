@@ -1,0 +1,42 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.cache
+.eslintcache
+
+node_modules
+build
+# Build output
+/build
+
+# Local backups
+backups/
+*.backup
+
+# Testing
+coverage/
+.nyc_output
+.vercel
+.env*.local
