@@ -241,7 +241,7 @@ export const workshopAPI = {
   // Get all workshops (for admin)
   getAllWorkshops: async (): Promise<Workshop[]> => {
     try {
-      const response = await fetch(`${getAPIUrl()}/admin/workshops`, {
+      const response = await fetch(`${getAPIUrl()}/workshops`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -264,7 +264,7 @@ export const workshopAPI = {
   getPublicWorkshops: async (): Promise<Workshop[]> => {
     try {
       console.log('🔄 Fetching public workshops from API...');
-      const response = await fetch(`${getAPIUrl()}/admin/workshops?isPublic=true`, {
+      const response = await fetch(`${getAPIUrl()}/workshops?isPublic=true`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });

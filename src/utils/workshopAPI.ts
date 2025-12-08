@@ -19,7 +19,7 @@ const getAPIUrl = () => {
   }
 };
 
-const API_BASE_URL = `${getAPIUrl()}/admin/workshops`;
+const API_BASE_URL = `${getAPIUrl()}/workshops`;
 
 console.log(`🔗 Workshop API URL: ${API_BASE_URL}`);
 
