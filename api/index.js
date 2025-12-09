@@ -34,7 +34,6 @@ import checkoutRoutes from '../server/routes/checkout.js';
 import pageStateRoutes from '../server/routes/pagestate.js';
 
 // API Routes
-app.use('/api/page-state', pageStateRoutes);
 app.use('/api/workshops', workshopRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/auth', authRoutes);
@@ -53,6 +52,7 @@ app.use('/api/reminders', reminderRoutes);
 app.use('/api/dailyplans', dailyPlanRoutes);
 app.use('/api/accounting', accountingRoutes);
 app.use('/api/checkout', checkoutRoutes);
+app.use('/api/page-state', pageStateRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
