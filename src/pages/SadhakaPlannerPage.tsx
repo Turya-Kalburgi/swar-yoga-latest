@@ -59,17 +59,24 @@ const SadhakaPlannerPage = () => {
 
   // Load all data
   useEffect(() => {
-    if (user?.id) {
+    const userId = user?.id || (user as any)?._id;
+    if (userId) {
       loadAllData();
       const interval = setInterval(loadAllData, 120000); // 2 minutes
       return () => clearInterval(interval);
     }
-  }, [user?.id]);
+  }, [user?.id, (user as any)?._id]);
 
   const loadAllData = async () => {
     try {
       setLoading(true);
-      const userId = user?.id || '';
+      const userId = user?.id || (user as any)?._id || '';
+      
+      if (!userId) {
+        console.warn('No userId found');
+        setLoading(false);
+        return;
+      }
 
       const [
         visionsData,
@@ -93,18 +100,21 @@ const SadhakaPlannerPage = () => {
         healthTrackerAPI.getByDate(userId, new Date().toISOString().split('T')[0])
       ]);
 
-      setVisions(visionsData);
-      setGoals(goalsData);
-      setMilestones(milestonesData);
-      setTasks(tasksData);
-      setMyWords(myWordsData);
-      setTodos(todosData);
-      setReminders(remindersData);
-      setTodaysPlan(planData);
-      setHealthData(healthData);
+      setVisions(visionsData || []);
+      setGoals(goalsData || []);
+      setMilestones(milestonesData || []);
+      setTasks(tasksData || []);
+      setMyWords(myWordsData || []);
+      setTodos(todosData || []);
+      setReminders(remindersData || []);
+      setTodaysPlan(planData || null);
+      setHealthData(healthData || null);
 
-      const overdueT = tasksData.filter((t: Task) => isOverdue(t.dueDate) && t.status !== 'Completed');
-      const overdueC = myWordsData.filter((m: MyWord) => isOverdue(m.completionDeadline) && m.status !== 'Completed');
+      const tasksArray = Array.isArray(tasksData) ? tasksData : [];
+      const myWordsArray = Array.isArray(myWordsData) ? myWordsData : [];
+      
+      const overdueT = tasksArray.filter((t: Task) => isOverdue(t.dueDate) && t.status !== 'Completed');
+      const overdueC = myWordsArray.filter((m: MyWord) => isOverdue(m.completionDeadline) && m.status !== 'Completed');
 
       if (overdueT.length > 0 || overdueC.length > 0) {
         setOverdueItems({ tasks: overdueT, commitments: overdueC });
