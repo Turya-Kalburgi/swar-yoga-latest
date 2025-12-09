@@ -26,6 +26,8 @@ export default function WorkshopListPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [filteredWorkshops, setFilteredWorkshops] = useState<Workshop[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const categories = [
     'basic',
@@ -78,6 +80,7 @@ export default function WorkshopListPage() {
     }
 
     setFilteredWorkshops(filtered);
+    setCurrentPage(1); // Reset to first page when filters change
   }, [selectedCategory, selectedLanguage, workshops]);
 
   if (loading) {
@@ -156,8 +159,19 @@ export default function WorkshopListPage() {
             <p className="text-gray-600 text-lg">No workshops found matching your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredWorkshops.map((workshop) => (
+          <>
+            {/* Results Count */}
+            <div className="mb-6">
+              <p className="text-gray-600">
+                Showing <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> to <strong>{Math.min(currentPage * itemsPerPage, filteredWorkshops.length)}</strong> of <strong>{filteredWorkshops.length}</strong> workshops
+              </p>
+            </div>
+
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {filteredWorkshops
+                .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                .map((workshop) => (
               <div
                 key={workshop._id}
                 className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
@@ -234,7 +248,56 @@ export default function WorkshopListPage() {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+
+            {/* Pagination Controls */}
+            {filteredWorkshops.length > itemsPerPage && (
+              <div className="flex items-center justify-center gap-4 mt-8 pt-8 border-t border-gray-200">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    currentPage === 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  }`}
+                >
+                  ← Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-2">
+                  {Array.from({
+                    length: Math.ceil(filteredWorkshops.length / itemsPerPage),
+                  }).map((_, index) => (
+                    <button
+                      key={index + 1}
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                        currentPage === index + 1
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(Math.min(Math.ceil(filteredWorkshops.length / itemsPerPage), currentPage + 1))}
+                  disabled={currentPage === Math.ceil(filteredWorkshops.length / itemsPerPage)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    currentPage === Math.ceil(filteredWorkshops.length / itemsPerPage)
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  }`}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
