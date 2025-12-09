@@ -1,0 +1,207 @@
+# 🚀 PM2 Auto-Restart & Vercel Deployment - Quick Reference
+
+## What Just Changed ✨
+
+### 1. PM2 Auto-Restart Enabled
+- **Backend:** Restarts every 1 hour (memory leak prevention)
+- **Frontend:** Restarts every 30 minutes (stability)
+- **Auto-crash recovery:** Max 15 restarts with 10s min uptime
+- **Memory limits:** 500MB per service (auto-restarts if exceeded)
+- **Auto-start on reboot:** System boot will auto-start services
+
+### 2. Deployment Scripts Created
+- `PM2_SETUP.sh` - Complete PM2 setup automation
+- `DEPLOY_TO_VERCEL.sh` - One-command Vercel deployment
+- `DEPLOYMENT_GUIDE.md` - Full documentation
+
+---
+
+## 🎯 How to Use
+
+### Start PM2 Auto-Restart (Local Development)
+
+```bash
+./PM2_SETUP.sh
+```
+
+**What happens:**
+1. Installs PM2 globally
+2. Starts backend + frontend with auto-restart enabled
+3. Configures auto-start on system reboot
+4. Shows status and logs
+
+**Result:**
+```
+pm2 status
+┌─────────────────┬──────┬──────────┐
+│ App Name        │ PID  │ Status   │
+├─────────────────┼──────┼──────────┤
+│ swar-backend    │ 1234 │ online ✓ │
+│ swar-frontend   │ 5678 │ online ✓ │
+└─────────────────┴──────┴──────────┘
+```
+
+---
+
+### Deploy to Vercel (Production)
+
+```bash
+./DEPLOY_TO_VERCEL.sh
+```
+
+**What happens:**
+1. Checks Vercel CLI installed
+2. Builds project locally
+3. Pushes to GitHub main branch
+4. Deploys to Vercel production
+5. App goes live at `https://swar-yoga-dec1.vercel.app`
+
+**Pre-requisites:**
+- Vercel account linked
+- MongoDB URI in Vercel env vars
+- GitHub repo connected
+
+---
+
+## 📊 Key Features
+
+### Auto-Restart Protection
+
+| Scenario | Action |
+|----------|--------|
+| App crashes | Auto-restart ✓ |
+| Memory > 500MB | Auto-restart ✓ |
+| Process hangs | Graceful shutdown + restart ✓ |
+| System reboot | Auto-start services ✓ |
+| Periodic cleanup | Restart every 1-30 min ✓ |
+
+### Monitoring
+
+```bash
+# View live logs
+pm2 logs
+
+# Monitor CPU/Memory
+pm2 monit
+
+# Check app status
+pm2 status
+
+# View specific app logs
+pm2 logs swar-backend
+pm2 logs swar-frontend
+```
+
+---
+
+## 📋 Checklist After Deployment
+
+- [ ] Run `./PM2_SETUP.sh` to start services
+- [ ] Verify `pm2 status` shows both apps online
+- [ ] Check `pm2 logs` for errors
+- [ ] Run `./DEPLOY_TO_VERCEL.sh` to deploy
+- [ ] Test frontend at `https://swar-yoga-dec1.vercel.app`
+- [ ] Verify user login works
+- [ ] Check data persistence
+- [ ] Monitor `pm2 logs` for 5 minutes
+- [ ] Verify Vercel dashboard shows deployment successful
+
+---
+
+## 🔧 Configuration Details
+
+### Backend Auto-Restart (`ecosystem.config.cjs`)
+```
+autorestart: true              ✓ On crash
+max_restarts: 15               ✓ Limit crash loops
+min_uptime: 10s                ✓ Only count if 10s+ running
+max_memory_restart: 500M       ✓ Memory leak protection
+cron_restart: '0 * * * *'      ✓ Every hour
+env: NODE_ENV='production'     ✓ Production mode
+```
+
+### Frontend Auto-Restart
+```
+autorestart: true              ✓ On crash
+max_restarts: 15               ✓ Limit crash loops
+max_memory_restart: 500M       ✓ Memory leak protection
+cron_restart: '*/30 * * * *'   ✓ Every 30 minutes
+env: NODE_ENV='development'    ✓ Dev mode for Vite
+```
+
+### Vercel Config (`vercel.json`)
+```
+Build: npm run build           ✓ Builds to /dist
+Output: dist                   ✓ Serves dist folder
+Functions: Max 30s timeout     ✓ API endpoints
+Environment: MongoDB + NODE    ✓ Configured
+```
+
+---
+
+## 🚨 Troubleshooting
+
+### App keeps crashing
+
+**Check logs:**
+```bash
+pm2 logs swar-backend --err
+```
+
+**Increase restart limit:**
+Edit `ecosystem.config.cjs` → increase `max_restarts: 20`
+
+---
+
+### Vercel build fails
+
+**Test locally:**
+```bash
+npm run build
+npm run lint
+```
+
+**Check env vars in Vercel Dashboard:**
+- Settings → Environment Variables
+- Verify MONGODB_URI is set
+
+---
+
+### Data not persisting
+
+**Check X-User-ID header:**
+1. Open browser DevTools → Network tab
+2. Make API request
+3. Verify X-User-ID header present
+
+**Check backend logs:**
+```bash
+pm2 logs swar-backend
+```
+
+---
+
+## 📚 Full Documentation
+
+See `DEPLOYMENT_GUIDE.md` for:
+- Detailed architecture diagram
+- Complete PM2 command reference
+- Vercel environment variable setup
+- Local vs production comparison
+- Extensive troubleshooting guide
+
+---
+
+## ✅ Status
+
+✓ PM2 Auto-Restart Enabled  
+✓ Vercel Deployment Ready  
+✓ Automated Setup Scripts Created  
+✓ Comprehensive Documentation Added  
+✓ Changes Committed & Pushed  
+
+**Next:** Run `./PM2_SETUP.sh` followed by `./DEPLOY_TO_VERCEL.sh`
+
+---
+
+**Last Updated:** December 9, 2025
