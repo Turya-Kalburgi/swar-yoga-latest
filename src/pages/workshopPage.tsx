@@ -104,11 +104,11 @@ const WorkshopPage = () => {
     console.log('🚀 WorkshopPage component mounted, loading workshops...');
     loadWorkshops();
     
-    // Auto-refresh workshops every 1 second for instant updates
+    // Auto-refresh workshops every 10 minutes
     const autoRefreshInterval = setInterval(() => {
       console.log('⏰ Auto-refresh check at', new Date().toLocaleTimeString());
       loadWorkshops(false); // Show silently without loading state
-    }, 1000); // Refresh every 1 second for instant updates
+    }, 600000); // Refresh every 10 minutes (600000ms)
 
     // Also refresh when window regains focus
     const handleFocus = () => {
