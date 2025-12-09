@@ -4,6 +4,9 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "framework": "vite",
+  "protectionBypass": {
+    "revalidateSecretString": "false"
+  },
   "rewrites": [
     {
       "source": "/(.*)",

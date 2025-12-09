@@ -91,25 +91,49 @@ interface BackupRestoreRequest extends Request {
 // ===== CORS CONFIGURATION =====
 // Use permissive CORS policy to allow all origins
 const corsOptions = {
-  origin: true, // Allow all origins
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
   allowedHeaders: [
     'Content-Type',
     'Authorization',
     'X-User-ID',
     'X-Admin-ID',
-    'X-Requested-With'
+    'X-Requested-With',
+    'Accept',
+    'Origin'
   ],
   credentials: true,
   optionsSuccessStatus: 200,
   maxAge: 86400 // 24 hours
 };
 
-// Apply CORS to all routes
+// Apply CORS to all routes FIRST (before any other middleware)
 app.use(cors(corsOptions));
 
 // Explicit preflight handling for all routes
 app.options('*', cors(corsOptions));
+
+// Additional CORS headers middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-ID, X-Admin-ID, X-Requested-With, Accept, Origin');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  
+  next();
+});
 
 app.use(express.json());
 
