@@ -9,17 +9,23 @@ export interface IPayment extends Document {
   amount: number;
   currency: 'INR' | 'NPR' | 'USD';
   
-  // Order Information
-  orderId: string; // Razorpay Order ID
-  paymentId?: string; // Razorpay Payment ID
-  transactionId?: string;
-  signature?: string; // Razorpay Signature
+  // PayU Order Information
+  orderId: string; // PayU Order ID (mihpayid)
+  paymentId?: string; // PayU Payment ID
+  transactionId?: string; // PayU txnid
+  signature?: string; // PayU Hash signature
   
-  // Payment Method
-  paymentMethod: 'razorpay' | 'bank_transfer' | 'upi' | 'card' | 'wallet';
+  // Payment Method & Gateway
+  paymentMethod: 'payu' | 'paypal' | 'upi' | 'card' | 'netbanking' | 'wallet';
+  paymentGateway: 'payu' | 'paypal' | 'external'; // Which gateway was used
+  
+  // QR Payment
+  qrCodeUrl?: string; // For QR code based payments
+  qrPaymentLink?: string; // UPI/Payment link for Nepal
+  qrStatus?: 'pending' | 'scanned' | 'processed';
   
   // Status
-  status: 'pending' | 'initiated' | 'completed' | 'failed' | 'refunded';
+  status: 'pending' | 'initiated' | 'completed' | 'failed' | 'refunded' | 'cancelled' | 'abandoned';
   statusChangedAt: Date;
   
   // Refund
@@ -33,6 +39,11 @@ export interface IPayment extends Document {
   remarks?: string;
   failureReason?: string;
   receiptUrl?: string;
+  
+  // PayU Specific
+  payuResponse?: Record<string, any>; // Full PayU response
+  paypalTransactionId?: string; // PayPal transaction ID
+  nepalPaymentRef?: string; // Nepal payment reference
   
   // Invoice
   invoiceNumber: string;
@@ -91,13 +102,26 @@ const PaymentSchema = new Schema<IPayment>(
     
     paymentMethod: {
       type: String,
-      enum: ['razorpay', 'bank_transfer', 'upi', 'card', 'wallet'],
-      default: 'razorpay'
+      enum: ['payu', 'paypal', 'upi', 'card', 'netbanking', 'wallet'],
+      default: 'payu'
+    },
+    paymentGateway: {
+      type: String,
+      enum: ['payu', 'paypal', 'external'],
+      default: 'payu'
+    },
+    
+    qrCodeUrl: String,
+    qrPaymentLink: String,
+    qrStatus: {
+      type: String,
+      enum: ['pending', 'scanned', 'processed'],
+      default: 'pending'
     },
     
     status: {
       type: String,
-      enum: ['pending', 'initiated', 'completed', 'failed', 'refunded'],
+      enum: ['pending', 'initiated', 'completed', 'failed', 'refunded', 'cancelled', 'abandoned'],
       default: 'pending',
       index: true
     },
@@ -119,6 +143,10 @@ const PaymentSchema = new Schema<IPayment>(
     remarks: String,
     failureReason: String,
     receiptUrl: String,
+    
+    payuResponse: mongoose.Schema.Types.Mixed,
+    paypalTransactionId: String,
+    nepalPaymentRef: String,
     
     invoiceNumber: {
       type: String,
