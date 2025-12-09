@@ -420,7 +420,9 @@ export const healthAPI = {
       const uid = userId || getCurrentUserId();
       if (!uid) return [];
       const response = await apiClient.get(`/health/${uid}`);
-      return response.data || [];
+      const data = response.data || [];
+      // Ensure it's always an array
+      return Array.isArray(data) ? data : [data];
     } catch (error) {
       console.error('❌ Error fetching health data:', error);
       return [];
@@ -698,7 +700,11 @@ export const pageStateAPI = {
 
       // Save to server (async, non-blocking)
       try {
-        await apiClient.post('/page-state', pageState);
+        await apiClient.post('/page-state', pageState, {
+          headers: {
+            'X-User-ID': userId
+          }
+        });
       } catch (err) {
         console.warn('Could not save page state to server:', err?.message);
         // Fallback to localStorage is already done
@@ -729,7 +735,9 @@ export const pageStateAPI = {
       // Fallback to server
       try {
         const response = await apiClient.get('/page-state', {
-          params: { userId },
+          headers: {
+            'X-User-ID': userId
+          }
         });
         
         if (response.data && response.data.pageName) {
@@ -760,7 +768,9 @@ export const pageStateAPI = {
       // Clear from server
       try {
         await apiClient.delete('/page-state', {
-          params: { userId },
+          headers: {
+            'X-User-ID': userId
+          }
         });
       } catch (err) {
         console.warn('Could not delete page state from server:', err?.message);
