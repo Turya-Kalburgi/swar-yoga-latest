@@ -1,39 +1,29 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
-export interface IPageState extends Document {
+export interface IPageState {
+  _id?: string;
   userId: string;
   pageName: string;
   pageData?: Record<string, any>;
-  lastVisited: Date;
-  timestamp: Date;
+  timestamp?: Date;
+  lastVisited?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const PageStateSchema = new Schema<IPageState>(
+const pageStateSchema = new Schema<IPageState>(
   {
-    userId: {
-      type: String,
-      required: true,
-      unique: true,
-      index: true,
-    },
-    pageName: {
-      type: String,
-      default: '/',
-    },
-    pageData: {
-      type: Schema.Types.Mixed,
-      default: {},
-    },
-    lastVisited: {
-      type: Date,
-      default: Date.now,
-    },
-    timestamp: {
-      type: Date,
-      default: Date.now,
-    },
+    _id: { type: String, default: () => uuidv4() },
+    userId: { type: String, required: true, index: true },
+    pageName: { type: String, required: true },
+    pageData: { type: Schema.Types.Mixed, default: {} },
+    timestamp: { type: Date, default: () => new Date() },
+    lastVisited: { type: Date, default: () => new Date() },
   },
-  { timestamps: true }
+  { _id: false, timestamps: true }
 );
 
-export default mongoose.model<IPageState>('PageState', PageStateSchema);
+pageStateSchema.index({ userId: 1, pageName: 1 });
+
+export default mongoose.model<IPageState>('PageState', pageStateSchema);

@@ -256,8 +256,9 @@ export const visionAPI = {
       const response = await apiClient.get('/visions', {
         headers: { 'X-User-ID': userId }
       });
-      console.log(`✅ Fetched ${response.data.length} visions`);
-      return response.data || [];
+      const data = response.data.data || response.data || [];
+      console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} visions`);
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('❌ Error fetching visions:', error);
       return [];
@@ -328,8 +329,9 @@ export const goalAPI = {
       const response = await apiClient.get('/goals', {
         headers: { 'X-User-ID': userId }
       });
-      console.log(`✅ Fetched ${response.data.length} goals`);
-      return response.data || [];
+      const data = response.data.data || response.data || [];
+      console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} goals`);
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('❌ Error fetching goals:', error);
       return [];
@@ -380,8 +382,9 @@ export const todoAPI = {
       const response = await apiClient.get('/todos', {
         headers: { 'X-User-ID': userId }
       });
-      console.log(`✅ Fetched ${response.data.length} todos`);
-      return response.data || [];
+      const data = response.data.data || response.data || [];
+      console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} todos`);
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('❌ Error fetching todos:', error);
       return [];
@@ -432,8 +435,9 @@ export const taskAPI = {
       const response = await apiClient.get('/tasks', {
         headers: { 'X-User-ID': userId }
       });
-      console.log(`✅ Fetched ${response.data.length} tasks`);
-      return response.data || [];
+      const data = response.data.data || response.data || [];
+      console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} tasks`);
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('❌ Error fetching tasks:', error);
       return [];
@@ -484,8 +488,9 @@ export const reminderAPI = {
       const response = await apiClient.get('/reminders', {
         headers: { 'X-User-ID': userId }
       });
-      console.log(`✅ Fetched ${response.data.length} reminders`);
-      return response.data || [];
+      const data = response.data.data || response.data || [];
+      console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} reminders`);
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('❌ Error fetching reminders:', error);
       return [];
@@ -549,7 +554,8 @@ export const dailyPlanAPI = {
       const response = await apiClient.get('/dailyplans', {
         headers: { 'X-User-ID': userId }
       });
-      return response.data || [];
+      const data = response.data.data || response.data || [];
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('❌ Error fetching daily plans:', error);
       return [];
@@ -613,7 +619,8 @@ export const healthTrackerAPI = {
       const response = await apiClient.get('/health', {
         headers: { 'X-User-ID': userId }
       });
-      return response.data || [];
+      const data = response.data.data || response.data || [];
+      return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('❌ Error fetching health data:', error);
       return [];

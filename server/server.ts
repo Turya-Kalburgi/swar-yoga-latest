@@ -21,6 +21,7 @@ import reminderRoutes from './routes/reminders.js';
 import dailyPlanRoutes from './routes/dailyplans.js';
 import accountingRoutes from './routes/accounting';
 import checkoutRoutes from './routes/checkout';
+import pageStateRoutes from './routes/pagestate.js';
 import connectDB from './config/db.js';
 import { initializeBackupService } from './services/backupService.js';
 import { 
@@ -153,6 +154,7 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/mywords', mywordRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/dailyplans', dailyPlanRoutes);
+app.use('/api/page-state', pageStateRoutes);
 
 // ===== AUTH ROUTES =====
 app.use('/api/auth', authRoutes);

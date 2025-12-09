@@ -1,74 +1,79 @@
-import express, { Request, Response } from 'express';
-import PageState from '../models/PageState';
+import express, { Request, Response, Router } from 'express';
+import PageState from '../models/PageState.js';
 
-const router = express.Router();
+const router: Router = express.Router();
 
-// Get user's last visited page
-router.get('/', async (req: Request, res: Response) => {
+// Get page state for current user
+router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.get('X-User-ID');
-    
+    const userId = req.headers['x-user-id'] as string;
     if (!userId) {
-      return res.status(400).json({ error: 'X-User-ID header required' });
+      res.status(400).json({ success: false, message: 'Missing X-User-ID header' });
+      return;
     }
 
-    const pageState = await PageState.findOne({ userId });
-    
+    const pageState = await PageState.findOne({ userId }).sort({ lastVisited: -1 });
     if (!pageState) {
-      return res.status(404).json({ error: 'No page state found' });
+      res.json({ success: true, data: null });
+      return;
     }
-
-    res.json(pageState);
+    res.json({ success: true, data: pageState });
   } catch (error) {
-    console.error('Error fetching page state:', error);
-    res.status(500).json({ error: 'Failed to fetch page state' });
+    const err = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: err });
   }
 });
 
-// Save or update page state
-router.post('/', async (req: Request, res: Response) => {
+// Save page state
+router.post('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.get('X-User-ID') || req.body.userId;
-    
+    const userId = req.headers['x-user-id'] as string;
     if (!userId) {
-      return res.status(400).json({ error: 'X-User-ID header or userId required' });
+      res.status(400).json({ success: false, message: 'Missing X-User-ID header' });
+      return;
     }
 
-    const { pageName, pageData } = req.body;
+    const { pageName, pageData, timestamp, lastVisited } = req.body;
+    
+    if (!pageName) {
+      res.status(400).json({ success: false, message: 'Missing pageName' });
+      return;
+    }
 
+    // Create or update page state
     const pageState = await PageState.findOneAndUpdate(
-      { userId },
+      { userId, pageName },
       {
         userId,
         pageName,
-        pageData,
-        lastVisited: new Date(),
+        pageData: pageData || {},
+        timestamp: timestamp || new Date(),
+        lastVisited: lastVisited || new Date(),
       },
       { upsert: true, new: true }
     );
 
-    res.json(pageState);
+    res.status(201).json({ success: true, data: pageState });
   } catch (error) {
-    console.error('Error saving page state:', error);
-    res.status(500).json({ error: 'Failed to save page state' });
+    const err = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: err });
   }
 });
 
 // Delete page state
-router.delete('/', async (req: Request, res: Response) => {
+router.delete('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.get('X-User-ID');
-    
+    const userId = req.headers['x-user-id'] as string;
     if (!userId) {
-      return res.status(400).json({ error: 'X-User-ID header required' });
+      res.status(400).json({ success: false, message: 'Missing X-User-ID header' });
+      return;
     }
 
-    await PageState.deleteOne({ userId });
-    
-    res.json({ success: true, message: 'Page state deleted' });
+    await PageState.deleteMany({ userId });
+    res.json({ success: true, message: 'Page state cleared' });
   } catch (error) {
-    console.error('Error deleting page state:', error);
-    res.status(500).json({ error: 'Failed to delete page state' });
+    const err = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: err });
   }
 });
 
