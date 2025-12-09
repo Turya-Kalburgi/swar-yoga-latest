@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Users, Clock, DollarSign, PlayCircle, MessageCircle, ChevronDown } from 'lucide-react';
 import axios from 'axios';
+import WorkshopModeBadge from '../components/WorkshopModeBadge';
 
 interface Workshop {
   _id: string;
@@ -259,16 +260,50 @@ export default function WorkshopDetailPage() {
           {/* Sidebar - Enrollment Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">Available batches</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Choose your batch</h3>
+
+              {/* Mode Selection */}
+              {workshop?.batches && workshop.batches.length > 0 && (
+                <div className="mb-6">
+                  <p className="text-sm font-semibold text-gray-700 mb-3">Available Modes</p>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {Array.from(new Set(workshop.batches.map((b: any) => b.mode))).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => {
+                          const batch = workshop.batches.find((b: any) => b.mode === mode);
+                          if (batch) setSelectedBatch(batch);
+                        }}
+                        className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center gap-2 ${
+                          selectedBatch?.mode === mode
+                            ? 'border-indigo-600 bg-indigo-50'
+                            : 'border-gray-300 hover:border-indigo-300'
+                        }`}
+                      >
+                        <div className="w-10 h-10 rounded-full overflow-hidden">
+                          <WorkshopModeBadge mode={mode as any} size="sm" showLabel={false} />
+                        </div>
+                        <span className="text-xs font-semibold capitalize text-gray-700">{mode}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {selectedBatch && (
-                <div className="mb-6">
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-gray-600 mb-2">Mode</p>
-                    <p className="font-semibold text-gray-800 capitalize">{selectedBatch.mode}</p>
+                <div className="mb-6 space-y-3">
+                  {/* Mode Icon & Label */}
+                  <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-lg">
+                    <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                      <WorkshopModeBadge mode={selectedBatch.mode as any} size="lg" showLabel={false} />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Delivery Mode</p>
+                      <p className="font-bold text-lg capitalize text-gray-800">{selectedBatch.mode}</p>
+                    </div>
                   </div>
 
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-4">
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
                     <p className="text-sm text-gray-600 mb-2">Schedule</p>
                     <p className="font-semibold text-gray-800">
                       {new Date(selectedBatch.startDate).toLocaleDateString()} -
@@ -276,14 +311,14 @@ export default function WorkshopDetailPage() {
                     </p>
                   </div>
 
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-4">
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
                     <p className="text-sm text-gray-600 mb-2">Seats available</p>
                     <p className="font-semibold text-gray-800">
                       {selectedBatch.capacity - selectedBatch.enrolledCount}/{selectedBatch.capacity}
                     </p>
                   </div>
 
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
                     <p className="text-sm text-gray-600 mb-2">Price</p>
                     <div className="space-y-1">
                       <p className="font-semibold text-gray-800">₹ {selectedBatch.pricing.INR}</p>

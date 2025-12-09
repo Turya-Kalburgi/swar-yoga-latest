@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Users, Clock, DollarSign, Filter } from 'lucide-react';
 import axios from 'axios';
+import WorkshopModeBadge from '../components/WorkshopModeBadge';
 
 interface Workshop {
   _id: string;
@@ -184,9 +185,21 @@ export default function WorkshopListPage() {
                     alt={workshop.title}
                     className="w-full h-full object-cover hover:scale-105 transition-transform"
                   />
+                  {/* Level Badge */}
                   <div className="absolute top-3 right-3 bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                     {workshop.level}
                   </div>
+                  
+                  {/* Mode Badges */}
+                  {workshop.batches && workshop.batches.length > 0 && (
+                    <div className="absolute bottom-3 left-3 flex gap-2 flex-wrap">
+                      {Array.from(new Set(workshop.batches.map((b: any) => b.mode))).map((mode) => (
+                        <div key={mode} className="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-md hover:scale-110 transition-transform">
+                          <WorkshopModeBadge mode={mode as any} size="sm" showLabel={false} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}
