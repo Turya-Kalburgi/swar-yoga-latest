@@ -71,9 +71,10 @@ import pageStateRoutes from '../server/routes/pagestate.js';
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'Backend API is running',
+    message: 'Backend API is running - Deployment Dec 9 2025',
     timestamp: new Date().toISOString(),
     dbConnected,
+    version: '2.0',
   });
 });
 
