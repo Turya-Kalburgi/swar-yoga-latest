@@ -32,6 +32,12 @@ import CertificateCreator from './pages/admin/CertificateCreator';
 import SadhakaPlannerPage from './pages/SadhakaPlannerPage';
 import SwarCalendar from './pages/SwarCalendar';
 import NotFoundPage from './pages/NotFoundPage';
+import WorkshopListPage from './pages/WorkshopListPage';
+import WorkshopDetailPage from './pages/WorkshopDetailPage';
+import RegistrationPage from './pages/RegistrationPage';
+import MyCoursesPage from './pages/MyCoursesPage';
+import CoursePlayerPage from './pages/CoursePlayerPage';
+import AdminWorkshopPage from './pages/AdminWorkshopPage';
 
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -108,6 +114,12 @@ function App() {
                   <Route path="/signin" element={<><Header /><SignInPage /><Footer /></>} />
                   <Route path="/signup" element={<><Header /><SignUpPage /><Footer /></>} />
                   <Route path="/account" element={<><Header /><UserAccount /><Footer /></>} />
+                  <Route path="/workshop-list" element={<><Header /><WorkshopListPage /><Footer /></>} />
+                  <Route path="/workshop/:workshopId" element={<><Header /><WorkshopDetailPage /><Footer /></>} />
+                  <Route path="/workshop/:workshopId/register" element={<><Header /><RegistrationPage /><Footer /></>} />
+                  <Route path="/my-courses" element={<><Header /><MyCoursesPage /><Footer /></>} />
+                  <Route path="/course/:enrollmentId/player" element={<CoursePlayerPage />} />
+                  <Route path="/admin/workshop-management" element={<ProtectedAdminRoute><AdminWorkshopPage /></ProtectedAdminRoute>} />
                   <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
                   <Route path="/admin/workshops" element={<ProtectedAdminRoute><AdminWorkshops /></ProtectedAdminRoute>} />
                   <Route path="/admin/signup-data" element={<ProtectedAdminRoute><AdminSignupData /></ProtectedAdminRoute>} />
