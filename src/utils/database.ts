@@ -13,10 +13,9 @@ const API_BASE_URL = (() => {
     return 'http://localhost:4000/api';
   }
   
-  // Default for production - use Vercel backend
-  const fallback = (import.meta as any).env.VITE_PRODUCTION_API_URL || 'https://swar-yoga-latest-76eifolxp-swar-yoga-projects.vercel.app/api';
-  console.log('📡 Using production API:', fallback);
-  return fallback;
+  // Production - use same origin (swaryoga.com is mapped to Vercel with /api routes)
+  console.log('📡 Using same-origin API (relative path)');
+  return '/api';
 })();
 
 // Get current user ID from localStorage

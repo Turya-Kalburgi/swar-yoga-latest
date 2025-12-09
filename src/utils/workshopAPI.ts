@@ -14,8 +14,8 @@ const getAPIUrl = () => {
   if (isDev) {
     return 'http://localhost:4000/api'; // Local development - backend on port 4000
   } else {
-    // Production - use Vercel backend
-    return 'https://swar-yoga-latest-76eifolxp-swar-yoga-projects.vercel.app/api';
+    // Production - use same origin (swaryoga.com routes to Vercel API)
+    return '/api'; // Relative path - works with custom domain
   }
 };
 
