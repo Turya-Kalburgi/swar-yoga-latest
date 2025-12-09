@@ -8,17 +8,16 @@ module.exports = {
       interpreter_args: 'tsx',
       cwd: '/Users/mohankalburgi/Downloads/swar-yoga-latest-latest-prod-version',
       
-      // Auto-restart configuration
+      // ✅ AUTO-RESTART CONFIGURATION - ENABLED
       autorestart: true,
       watch: false,
       max_memory_restart: '500M',
       
-      // Periodic restart (every 10 minutes) - helps with memory leaks
-      // Uncomment to enable: every one hour, every 10 minutes, or custom cron
-      // cron_restart: '0 */1 * * *',  // Every hour
+      // Periodic restart for memory cleanup (every 1 hour)
+      cron_restart: '0 * * * *',  // Every hour - helps prevent memory leaks
       
       env: {
-        NODE_ENV: 'development',
+        NODE_ENV: 'production',
         PORT: 4000
       },
       
@@ -31,13 +30,17 @@ module.exports = {
       instances: 1,
       exec_mode: 'fork',
       
-      // Restart policies
-      max_restarts: 10,
+      // Restart policies - Enhanced for production
+      max_restarts: 15,
       min_uptime: '10s',
+      max_memory_restart: '500M',
       
       // Graceful shutdown
       kill_timeout: 5000,
-      listen_timeout: 10000
+      listen_timeout: 10000,
+      
+      // Restart on error
+      error_handler: true
     },
     
     // Frontend Server (Vite Dev Server)
@@ -47,10 +50,14 @@ module.exports = {
       args: '--host 0.0.0.0 --port 5173',
       cwd: '/Users/mohankalburgi/Downloads/swar-yoga-latest-latest-prod-version',
       
-      // Auto-restart configuration
+      // ✅ AUTO-RESTART CONFIGURATION - ENABLED
       autorestart: true,
       watch: ['vite.config.ts', 'package.json'],
       max_memory_restart: '500M',
+      
+      // Periodic restart for memory cleanup (every 30 minutes)
+      cron_restart: '*/30 * * * *',  // Every 30 minutes
+      
       env: {
         NODE_ENV: 'development'
       },
@@ -64,9 +71,12 @@ module.exports = {
       instances: 1,
       exec_mode: 'fork',
       
-      // Restart policies
-      max_restarts: 10,
-      min_uptime: '10s'
+      // Restart policies - Enhanced for stability
+      max_restarts: 15,
+      min_uptime: '10s',
+      
+      // Graceful shutdown
+      kill_timeout: 5000
     }
   ],
   
