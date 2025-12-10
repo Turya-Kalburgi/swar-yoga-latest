@@ -2,19 +2,14 @@
 // Vercel Serverless Function - Admin Dashboard
 // Handles admin operations and data retrieval
 
-function sendJson(res, statusCode, body) {
-  res.statusCode = statusCode;
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify(body));
-}
-
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-ID, X-User-ID');
 
   if (req.method === 'OPTIONS') {
-    return sendJson(res, 200, { ok: true });
+    res.status(200);
+    return res.json({ ok: true });
   }
 
   const method = req.method || 'GET';
@@ -22,7 +17,8 @@ module.exports = async (req, res) => {
 
   // Check if admin is authenticated
   if (!adminId) {
-    return sendJson(res, 401, {
+    res.status(401);
+    return res.json({
       success: false,
       message: 'Unauthorized: Admin ID required',
     });
@@ -30,7 +26,8 @@ module.exports = async (req, res) => {
 
   if (method === 'GET') {
     // Retrieve admin dashboard data
-    sendJson(res, 200, {
+    res.status(200);
+    return res.json({
       success: true,
       data: {
         totalUsers: 0,
@@ -43,24 +40,29 @@ module.exports = async (req, res) => {
     });
   } else if (method === 'POST') {
     // Admin action
-    sendJson(res, 201, {
+    res.status(201);
+    return res.json({
       success: true,
       message: 'Admin action completed successfully (stub backend)',
     });
   } else if (method === 'PUT') {
     // Update admin settings
-    sendJson(res, 200, {
+    res.status(200);
+    return res.json({
       success: true,
       message: 'Admin settings updated (stub backend)',
     });
   } else if (method === 'DELETE') {
     // Delete admin action
-    sendJson(res, 200, {
+    res.status(200);
+    return res.json({
       success: true,
       message: 'Admin action deleted (stub backend)',
     });
   } else {
-    sendJson(res, 405, {
+    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
+    res.status(405);
+    return res.json({
       success: false,
       message: `Method ${method} not allowed`,
     });

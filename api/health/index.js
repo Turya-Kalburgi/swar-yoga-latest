@@ -2,36 +2,37 @@
 // Vercel Serverless Function - Health Check
 // Returns server and database status
 
-function sendJson(res, statusCode, body) {
-  res.statusCode = statusCode;
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify(body));
-}
-
 module.exports = async (req, res) => {
+  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return sendJson(res, 200, { ok: true });
-  }
-
   const method = req.method || 'GET';
+
+  // Handle preflight CORS requests
+  if (method === 'OPTIONS') {
+    res.status(200);
+    return res.json({ ok: true });
+  }
 
   if (method === 'GET') {
     // Return health status
-    sendJson(res, 200, {
+    res.status(200);
+    return res.json({
       status: 'online',
       message: 'Server and Database are live',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: 'vercel-production',
     });
-  } else {
-    sendJson(res, 405, {
-      status: 'error',
-      message: `Method ${method} not allowed`,
-    });
   }
+
+  // Method not allowed
+  res.setHeader('Allow', ['GET']);
+  res.status(405);
+  return res.json({
+    status: 'error',
+    message: `Method ${method} not allowed`,
+  });
 };
