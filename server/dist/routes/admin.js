@@ -2,6 +2,7 @@ import express from 'express';
 import crypto from 'crypto';
 import Admin from '../models/Admin.js';
 import Contact from '../models/Contact.js';
+import User from '../models/User.js';
 const router = express.Router();
 // ===== UTILITY FUNCTIONS =====
 /**
@@ -596,6 +597,161 @@ router.post('/signout', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Signout failed',
+            error: errorMessage
+        });
+    }
+});
+// ===== ADMIN DATA ENDPOINTS =====
+/**
+ * GET /api/admin/signup-data
+ * Fetch all signup users from MongoDB for admin dashboard
+ */
+router.get('/signup-data', async (req, res) => {
+    try {
+        const { limit = 1000, skip = 0, status = 'active' } = req.query;
+        // Fetch users from MongoDB, excluding password hash
+        const query = {};
+        if (status) {
+            query.accountStatus = status;
+        }
+        const users = await User.find(query)
+            .select('-passwordHash')
+            .sort({ signupDate: -1 })
+            .limit(parseInt(limit))
+            .skip(parseInt(skip))
+            .lean();
+        const total = await User.countDocuments(query);
+        // Format data for admin display
+        const formattedUsers = users.map((user) => ({
+            id: user.userId,
+            name: user.name,
+            email: user.email,
+            phone: user.phone || '',
+            countryCode: user.countryCode || '+91',
+            country: user.country || '',
+            state: user.state || '',
+            gender: user.gender || '',
+            age: user.age || '',
+            profession: user.profession || '',
+            registrationDate: user.signupDate?.toISOString() || new Date().toISOString(),
+            status: user.accountStatus || 'active',
+            source: 'signup',
+            lastLogin: user.lastLogin?.toISOString() || null,
+            loginCount: user.loginCount || 0,
+            emailVerified: user.emailVerified || false,
+            phoneVerified: user.phoneVerified || false
+        }));
+        console.log(`✅ Fetched ${formattedUsers.length} signup users for admin`);
+        res.json({
+            success: true,
+            data: formattedUsers,
+            pagination: {
+                total,
+                limit: parseInt(limit),
+                skip: parseInt(skip),
+                remaining: Math.max(0, total - (parseInt(skip) + parseInt(limit)))
+            }
+        });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('❌ Error fetching signup data:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching signup data',
+            error: errorMessage
+        });
+    }
+});
+/**
+ * GET /api/admin/signin-data
+ * Fetch signin events - currently using user login history
+ * Note: For detailed signin tracking, implement separate SignInData model
+ */
+router.get('/signin-data', async (req, res) => {
+    try {
+        const { limit = 1000, skip = 0 } = req.query;
+        // Fetch users with login information
+        const users = await User.find({ loginCount: { $gt: 0 } })
+            .select('email name userId lastLogin loginCount')
+            .sort({ lastLogin: -1 })
+            .limit(parseInt(limit))
+            .skip(parseInt(skip))
+            .lean();
+        const total = await User.countDocuments({ loginCount: { $gt: 0 } });
+        // Format data for admin display
+        const formattedSignins = users.map((user) => ({
+            id: user.userId || user._id,
+            email: user.email,
+            name: user.name,
+            lastLogin: user.lastLogin?.toISOString() || null,
+            loginCount: user.loginCount || 0,
+            status: 'success', // Since these are successful logins (loginCount > 0)
+            date: user.lastLogin?.toISOString() || new Date().toISOString()
+        }));
+        console.log(`✅ Fetched ${formattedSignins.length} signin records for admin`);
+        res.json({
+            success: true,
+            data: formattedSignins,
+            pagination: {
+                total,
+                limit: parseInt(limit),
+                skip: parseInt(skip),
+                remaining: Math.max(0, total - (parseInt(skip) + parseInt(limit)))
+            }
+        });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('❌ Error fetching signin data:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching signin data',
+            error: errorMessage
+        });
+    }
+});
+/**
+ * GET /api/admin/dashboard-stats
+ * Fetch dashboard statistics for admin overview
+ */
+router.get('/dashboard-stats', async (req, res) => {
+    try {
+        const totalUsers = await User.countDocuments();
+        const activeUsers = await User.countDocuments({ accountStatus: 'active' });
+        const totalContacts = await Contact.countDocuments();
+        const unreadContacts = await Contact.countDocuments({ status: 'unread' });
+        // Get recent activity
+        const recentSignups = await User.countDocuments({
+            signupDate: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // Last 7 days
+        });
+        const recentMessages = await Contact.countDocuments({
+            createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // Last 7 days
+        });
+        console.log(`✅ Fetched dashboard stats for admin`);
+        res.json({
+            success: true,
+            data: {
+                users: {
+                    total: totalUsers,
+                    active: activeUsers,
+                    recentSignups: recentSignups
+                },
+                contacts: {
+                    total: totalContacts,
+                    unread: unreadContacts,
+                    recentMessages: recentMessages
+                },
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('❌ Error fetching dashboard stats:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching dashboard stats',
             error: errorMessage
         });
     }

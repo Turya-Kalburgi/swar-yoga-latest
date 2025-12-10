@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import connectDB from '../server/config/db.js';
+import connectDB from '../server/dist/config/db.js';
 
 dotenv.config();
 
@@ -47,33 +47,33 @@ async function ensureDBConnection() {
 }
 
 // ===== IMPORT ALL ROUTES =====
-import workshopRoutes from '../server/routes/workshops.js';
-import adminRoutes from '../server/routes/admin.js';
-import authRoutes from '../server/routes/auth.js';
-import visionRoutes from '../server/routes/visions.js';
-import goalRoutes from '../server/routes/goals.js';
-import taskRoutes from '../server/routes/tasks.js';
-import todoRoutes from '../server/routes/todos.js';
-import mywordRoutes from '../server/routes/mywords.js';
-import healthRoutes from '../server/routes/health.js';
-import userRoutes from '../server/routes/users.js';
-import cartRoutes from '../server/routes/carts.js';
-import adminMongoRoutes from '../server/routes/adminMongo.js';
-import contactRoutes from '../server/routes/contact.js';
-import milestoneRoutes from '../server/routes/milestones.js';
-import reminderRoutes from '../server/routes/reminders.js';
-import dailyPlanRoutes from '../server/routes/dailyplans.js';
-import accountingRoutes from '../server/routes/accounting.js';
-import checkoutRoutes from '../server/routes/checkout.js';
-import pageStateRoutes from '../server/routes/pagestate.js';
+import workshopRoutes from '../server/dist/routes/workshops.js';
+import adminRoutes from '../server/dist/routes/admin.js';
+import authRoutes from '../server/dist/routes/auth.js';
+import visionRoutes from '../server/dist/routes/visions.js';
+import goalRoutes from '../server/dist/routes/goals.js';
+import taskRoutes from '../server/dist/routes/tasks.js';
+import todoRoutes from '../server/dist/routes/todos.js';
+import mywordRoutes from '../server/dist/routes/mywords.js';
+import healthRoutes from '../server/dist/routes/health.js';
+import userRoutes from '../server/dist/routes/users.js';
+import cartRoutes from '../server/dist/routes/carts.js';
+import adminMongoRoutes from '../server/dist/routes/adminMongo.js';
+import contactRoutes from '../server/dist/routes/contact.js';
+import milestoneRoutes from '../server/dist/routes/milestones.js';
+import reminderRoutes from '../server/dist/routes/reminders.js';
+import dailyPlanRoutes from '../server/dist/routes/dailyplans.js';
+import accountingRoutes from '../server/dist/routes/accounting.js';
+import checkoutRoutes from '../server/dist/routes/checkout.js';
+import pageStateRoutes from '../server/dist/routes/pagestate.js';
 
 // ===== WORKSHOP PLATFORM ROUTES =====
-import enrollmentRoutes from '../server/routes/enrollment.js';
-import studentProgressRoutes from '../server/routes/student-progress.js';
-import assignmentRoutes from '../server/routes/assignment.js';
-import zoomMeetingRoutes from '../server/routes/zoom-meeting.js';
-import paymentRoutes from '../server/routes/payment.js';
-import chatRoutes from '../server/routes/chat.js';
+import enrollmentRoutes from '../server/dist/routes/enrollment.js';
+import studentProgressRoutes from '../server/dist/routes/student-progress.js';
+import assignmentRoutes from '../server/dist/routes/assignment.js';
+import zoomMeetingRoutes from '../server/dist/routes/zoom-meeting.js';
+import paymentRoutes from '../server/dist/routes/payment.js';
+import chatRoutes from '../server/dist/routes/chat.js';
 
 // ===== HEALTH CHECK ENDPOINT =====
 app.get('/api/health', (req, res) => {

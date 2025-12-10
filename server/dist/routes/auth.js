@@ -38,28 +38,37 @@ router.post('/register', async (req, res) => {
         const newUser = new User({
             userId,
             email: normalizedEmail,
-            name,
+            name: name.trim(),
+            phone: phone ? phone.trim() : null,
+            countryCode: countryCode || '+91',
+            country: country ? country.trim() : null,
+            state: state ? state.trim() : null,
+            gender: gender ? gender.trim() : null,
+            age: age ? parseInt(age) : null,
+            profession: profession ? profession.trim() : null,
+            passwordHash: hashPassword(password),
+            accountStatus: 'active',
+            emailVerified: false,
+            phoneVerified: false,
+            loginCount: 0,
+            signupDate: new Date()
+        });
+        const savedUser = await newUser.save();
+        console.log(`✅ New user registered: ${normalizedEmail} (ID: ${userId})`);
+        console.log(`   Details: ${name}, Phone: ${phone}, Country: ${country}, State: ${state}, Gender: ${gender}, Age: ${age}, Profession: ${profession}`);
+        res.status(201).json({
+            success: true,
+            message: 'User registered successfully',
+            id: userId,
+            email: normalizedEmail,
+            name: name,
             phone: phone || null,
             countryCode: countryCode || '+91',
             country: country || null,
             state: state || null,
             gender: gender || null,
             age: age ? parseInt(age) : null,
-            profession: profession || null,
-            passwordHash: hashPassword(password),
-            accountStatus: 'active',
-            emailVerified: false,
-            phoneVerified: false,
-            loginCount: 0
-        });
-        const savedUser = await newUser.save();
-        console.log(`✅ New user registered: ${email} (ID: ${userId})`);
-        res.status(201).json({
-            success: true,
-            message: 'User registered successfully',
-            id: userId,
-            email: normalizedEmail,
-            name
+            profession: profession || null
         });
     }
     catch (error) {

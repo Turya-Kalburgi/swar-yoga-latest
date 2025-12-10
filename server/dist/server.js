@@ -19,7 +19,9 @@ import reminderRoutes from './routes/reminders.js';
 import dailyPlanRoutes from './routes/dailyplans.js';
 import accountingRoutes from './routes/accounting';
 import checkoutRoutes from './routes/checkout';
+import pageStateRoutes from './routes/pagestate.js';
 import connectDB from './config/db.js';
+import { initializeBackupService } from './services/backupService.js';
 import { createDailyBackup, listBackups, restoreFromBackup, getBackupStats } from './backup.js';
 import User from './models/User.js';
 import SignupData from './models/SignupData.js';
@@ -32,24 +34,71 @@ const PORT = process.env.PORT || 4000;
     try {
         await connectDB();
         console.log('✅ MongoDB initialization successful');
+        // Initialize backup service (automated daily backups)
+        initializeBackupService();
     }
     catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('❌ MongoDB initialization failed:', errorMessage);
     }
 })();
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// ===== CORS CONFIGURATION =====
+// Use permissive CORS policy to allow all origins
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) {
+            callback(null, true);
+        }
+        else {
+            callback(null, true);
+        }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-User-ID',
+        'X-Admin-ID',
+        'X-Requested-With',
+        'Accept',
+        'Origin'
+    ],
+    credentials: true,
+    optionsSuccessStatus: 200,
+    maxAge: 86400 // 24 hours
+};
+// Apply CORS to all routes FIRST (before any other middleware)
+app.use(cors(corsOptions));
+// Explicit preflight handling for all routes
+app.options('*', cors(corsOptions));
+// Additional CORS headers middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-ID, X-Admin-ID, X-Requested-With, Accept, Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+        return;
+    }
+    next();
+});
 app.use(express.json());
 // ===== ROOT ENDPOINT =====
 app.get('/', (req, res) => {
     res.json({ message: 'Swar Yoga Backend API - MongoDB Atlas Edition', timestamp: new Date().toISOString() });
 });
+// ===== HEALTH CHECK ENDPOINT =====
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'online',
+        message: 'Server and Database are live',
+        timestamp: new Date().toISOString()
+    });
+});
 // ⭐ IMPORTANT: Workshop Routes MUST come FIRST before generic routes
-app.use('/api/admin/workshops', workshopRoutes);
+app.use('/api/workshops', workshopRoutes);
 // ===== MONGODB ROUTES =====
 app.use('/api/visions', visionRoutes);
 app.use('/api/goals', goalRoutes);
@@ -58,6 +107,7 @@ app.use('/api/todos', todoRoutes);
 app.use('/api/mywords', mywordRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/dailyplans', dailyPlanRoutes);
+app.use('/api/page-state', pageStateRoutes);
 // ===== AUTH ROUTES =====
 app.use('/api/auth', authRoutes);
 // ===== MONGODB USER & CART ROUTES =====
