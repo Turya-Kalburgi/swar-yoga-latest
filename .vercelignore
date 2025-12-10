@@ -1,4 +1,10 @@
-server/
+server/**/*.ts
+server/**/*.map
+server/node_modules
+server/.env
+server/.env.local
+server/package-lock.json
+server/*.ts
 backups/
 bolt/
 *.md
