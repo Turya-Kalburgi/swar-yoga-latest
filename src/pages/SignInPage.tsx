@@ -70,12 +70,15 @@ const SignInPage = () => {
 
       if (resp.ok) {
         const userData = await resp.json();
+        console.log('🔐 Backend response userData:', userData);
         setSubmitStatus('success');
-        // Ensure user object has 'id' field for API requests
+        // Use ONLY the backend response data - don't mix with other sources
         const userToStore = {
-          ...userData,
-          id: userData.id || userData._id // Support both id and _id from backend
+          email: userData.email,
+          name: userData.name,
+          id: userData.id // ALWAYS use backend ID, never _id or fallback
         };
+        console.log('🔐 userToStore about to be passed to login():', userToStore);
         login(userToStore as any);
         // record signin locally for analytics as well
         await authAPI.recordSignIn({
@@ -111,6 +114,7 @@ const SignInPage = () => {
             name: user?.name || normalizedEmail.split('@')[0], 
             id: normalizedEmail // Use email as ID for backend compatibility
           };
+          console.log('⚠️ Using fallback auth - userData:', userData);
           login(userData as any);
           setSubmitStatus('success');
           setTimeout(() => navigate('/'), 500);

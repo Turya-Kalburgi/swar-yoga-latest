@@ -106,6 +106,7 @@ const SadhakaPlannerPage = () => {
   const loadAllData = async () => {
     try {
       console.log('🚀 loadAllData() CALLED - starting data load');
+      (window as any)._loadAllDataCalled = true;
       setLoading(true);
       let userId = user?.id || (user as any)?._id || '';
       console.log('🔍 userId from context:', userId);
@@ -191,7 +192,10 @@ const SadhakaPlannerPage = () => {
     }
   };
 
-  if (!user) return null;
+  if (!user) {
+    console.warn('❌ SadhakaPlannerPage: No user, returning null');
+    return null;
+  }
 
   if (loading) {
     return (

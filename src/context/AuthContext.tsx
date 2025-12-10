@@ -31,19 +31,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Check if user is logged in
     const userData = localStorage.getItem('user');
+    console.log('🔍 AuthContext useEffect - checking localStorage for user:', userData ? 'FOUND' : 'NOT FOUND');
     if (userData) {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
         setIsAuthenticated(true);
-        
-        // Log user info for debugging
-        console.log(`👤 User loaded from localStorage:`, {
-          email: parsedUser.email,
-          name: parsedUser.name,
-          userId: parsedUser.id,
-          timestamp: new Date().toLocaleString()
-        });
+        console.log(`✅ AuthContext: User loaded successfully:`, parsedUser.email);
       } catch (error) {
         console.error('❌ Error parsing user data:', error);
         localStorage.removeItem('user');
