@@ -39,10 +39,10 @@ import MyCoursesPage from './pages/MyCoursesPage';
 import CoursePlayerPage from './pages/CoursePlayerPage';
 import AdminWorkshopPage from './pages/AdminWorkshopPage';
 
-import { AuthProvider } from './context/AuthContext';
+// Note: AuthProvider, AdminProvider, AdminAuthProvider, AdminDataProvider
+// are already provided in main.tsx
+// We only add the remaining context providers here
 import { CartProvider } from './context/CartContext';
-import { AdminDataProvider } from './context/AdminDataContext';
-import { AdminProvider } from './context/AdminContext';
 import { ThemeProvider } from './context/ThemeContext';
 
 // Protected Route Component for Admin Pages
@@ -96,13 +96,10 @@ function App() {
 
   return (
     <ThemeProvider>
-      <AdminProvider>
-        <AdminDataProvider>
-          <AuthProvider>
-            <CartProvider>
-              <div className="min-h-screen bg-white">
-                <ScrollToTop />
-                <Routes>
+      <CartProvider>
+        <div className="min-h-screen bg-white">
+          <ScrollToTop />
+          <Routes>
                   <Route path="/" element={<><Header /><HomePage /><Footer /></>} />
                   <Route path="/about" element={<><Header /><AboutPage /><Footer /></>} />
                   <Route path="/contact" element={<><Header /><ContactPage /><Footer /></>} />
@@ -149,11 +146,8 @@ function App() {
                 />
               </div>
             </CartProvider>
-          </AuthProvider>
-        </AdminDataProvider>
-      </AdminProvider>
-    </ThemeProvider>
-  );
-}
+          </ThemeProvider>
+        );
+      }
 
 export default App;
