@@ -1,48 +1,46 @@
 // api/page-state.js
 // Vercel Serverless Function - Page State Management
-// Handles saving and retrieving page state for users
+// Handles saving and retrieving page state for users (stub)
 
-function sendJson(res, statusCode, body) {
-  res.statusCode = statusCode;
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify(body));
-}
+export default async function handler(req, res) {
+  const method = req.method || 'GET';
 
-module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   // Handle preflight CORS requests
-  if (req.method === 'OPTIONS') {
-    return sendJson(res, 200, { ok: true });
+  if (method === 'OPTIONS') {
+    return res.status(200).json({ ok: true });
   }
-
-  const method = req.method || 'GET';
 
   if (method === 'POST') {
     // Save page state - currently a stub, later connects to MongoDB
-    console.log('📝 Page state save request:', req.body);
+    // We ignore the request body for now
+    console.log('📝 Page state save request received at', new Date().toISOString());
 
-    sendJson(res, 200, {
+    return res.status(200).json({
       ok: true,
-      message: 'Page state saved successfully.',
+      message: 'Page state saved successfully (stub backend).',
       timestamp: new Date().toISOString(),
-    });
-  } else if (method === 'GET') {
-    // Retrieve page state - currently returns null, later loads from MongoDB
-    sendJson(res, 200, {
-      ok: true,
-      state: null,
-      message: 'Page state retrieval is not implemented yet.',
-      timestamp: new Date().toISOString(),
-    });
-  } else {
-    // Method not allowed
-    sendJson(res, 405, {
-      ok: false,
-      message: `Method ${method} not allowed on /api/page-state`,
     });
   }
-};
+
+  if (method === 'GET') {
+    // Retrieve page state - currently returns null, later loads from MongoDB
+    return res.status(200).json({
+      ok: true,
+      state: null,
+      message: 'Page state retrieval is not implemented yet (stub).',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Method not allowed
+  res.setHeader('Allow', ['GET', 'POST']);
+  return res.status(405).json({
+    ok: false,
+    message: `Method ${method} not allowed on /api/page-state`,
+  });
+}
