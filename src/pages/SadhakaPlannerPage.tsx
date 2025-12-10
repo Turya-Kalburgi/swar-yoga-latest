@@ -52,21 +52,29 @@ const SadhakaPlannerPage = () => {
 
   // Redirect if not authenticated
   useEffect(() => {
+    console.log('🔐 Auth check - user:', user);
     if (!user) {
+      console.warn('⚠️ No user found, redirecting to signin');
       navigate('/signin');
       return;
     }
+    console.log('✅ User authenticated:', user.email);
   }, [user, navigate]);
 
   // Load all data
   useEffect(() => {
+    console.log('📋 useEffect triggered - user:', user);
     const userId = user?.id || (user as any)?._id;
+    console.log('🔍 useEffect resolved userId:', userId);
     if (userId) {
+      console.log('✅ useEffect: Calling loadAllData()');
       loadAllData();
       const interval = setInterval(loadAllData, 120000); // 2 minutes
       return () => clearInterval(interval);
+    } else {
+      console.warn('⚠️ useEffect: No userId found');
     }
-  }, [user?.id, (user as any)?._id]);
+  }, [user]);
 
   // Health check for server and database
   useEffect(() => {
@@ -97,9 +105,10 @@ const SadhakaPlannerPage = () => {
 
   const loadAllData = async () => {
     try {
+      console.log('🚀 loadAllData() CALLED - starting data load');
       setLoading(true);
       let userId = user?.id || (user as any)?._id || '';
-      // If userId not found in context, try to get it from localStorage
+      console.log('🔍 userId from context:', userId);
       if (!userId) {
         const userStr = localStorage.getItem('user');
         if (userStr) {
@@ -142,16 +151,10 @@ const SadhakaPlannerPage = () => {
         dailyPlanAPI.getByDate(userId, new Date().toISOString().split('T')[0]),
         healthTrackerAPI.getByDate(userId, new Date().toISOString().split('T')[0])
       ]);
-      // Debug: log API results
-      console.log('📊 visionsData:', visionsData);
-      console.log('📊 goalsData:', goalsData);
-      console.log('📊 milestonesData:', milestonesData);
-      console.log('📊 tasksData:', tasksData);
-      console.log('📊 myWordsData:', myWordsData);
-      console.log('📊 todosData:', todosData);
-      console.log('📊 remindersData:', remindersData);
-      console.log('📊 planData:', planData);
-      console.log('📊 healthData:', healthData);
+      
+      console.log('✅ Promise.all() COMPLETED');
+      console.log('📊 visionsData length:', visionsData?.length, 'data:', visionsData);
+      console.log('📊 goalsData length:', goalsData?.length, 'data:', goalsData);
 
       setVisions(visionsData || []);
       setGoals(goalsData || []);
@@ -162,6 +165,9 @@ const SadhakaPlannerPage = () => {
       setReminders(remindersData || []);
       setTodaysPlan(planData || null);
       setHealthData(healthData || null);
+
+      console.log('✅ State updated - visions:', visionsData, 'length:', visionsData?.length);
+      console.log('✅ State updated - goals:', goalsData, 'length:', goalsData?.length);
 
       // Debug: log after state set
       setTimeout(() => {
