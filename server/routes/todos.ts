@@ -82,10 +82,10 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
     console.log(`✏️ Creating new todo for user: ${userId}`);
 
-    if (!req.body.title && !req.body.text) {
+    if (!req.body.title) {
       res.status(400).json({
         success: false,
-        message: 'Title or text is required',
+        message: 'Title is required',
       });
       return;
     }

@@ -82,10 +82,10 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
     const userId = getUserId(req);
     console.log(`✏️ Creating new word for user: ${userId}`);
 
-    if (!req.body.word && !req.body.text) {
+    if (!req.body.commitment) {
       res.status(400).json({
         success: false,
-        message: 'Word or text is required',
+        message: 'Commitment is required',
       });
       return;
     }
