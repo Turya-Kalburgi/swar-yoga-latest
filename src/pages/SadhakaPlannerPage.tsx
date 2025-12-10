@@ -69,7 +69,7 @@ const SadhakaPlannerPage = () => {
     if (userId) {
       console.log('✅ useEffect: Calling loadAllData()');
       loadAllData();
-      const interval = setInterval(loadAllData, 120000); // 2 minutes
+      const interval = setInterval(loadAllData, 600000); // 10 minutes
       return () => clearInterval(interval);
     } else {
       console.warn('⚠️ useEffect: No userId found');
