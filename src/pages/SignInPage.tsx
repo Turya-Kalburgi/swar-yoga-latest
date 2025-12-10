@@ -62,7 +62,7 @@ const SignInPage = () => {
 
     try {
       // Try server login first
-      const resp = await fetch('/api/users/login', {
+      const resp = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -71,7 +71,12 @@ const SignInPage = () => {
       if (resp.ok) {
         const userData = await resp.json();
         setSubmitStatus('success');
-        login(userData as any);
+        // Ensure user object has 'id' field for API requests
+        const userToStore = {
+          ...userData,
+          id: userData.id || userData._id // Support both id and _id from backend
+        };
+        login(userToStore as any);
         // record signin locally for analytics as well
         await authAPI.recordSignIn({
           email: formData.email,

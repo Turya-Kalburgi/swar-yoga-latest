@@ -138,7 +138,7 @@ const SignUpPage = () => {
         age: formData.age
       };
       
-      const resp = await fetch('/api/users/register', {
+      const resp = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -162,8 +162,13 @@ const SignUpPage = () => {
           source: 'signup'
         });
 
-        // Login the user via context
-        login({ email: created.email, name: created.name, id: created.id } as any);
+        // Login the user via context - ensure id field is present
+        const userToStore = {
+          email: created.email,
+          name: created.name,
+          id: created.id || created._id // Support both id and _id from backend
+        };
+        login(userToStore as any);
         setTimeout(() => {
           navigate(redirectPath === 'account' ? '/account' : '/');
         }, 500);
