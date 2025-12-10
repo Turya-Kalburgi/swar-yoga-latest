@@ -228,9 +228,11 @@ const TasksComponent: React.FC<TasksComponentProps> = ({ onTasksUpdate }) => {
             <p className="text-gray-500">No tasks found</p>
           </div>
         ) : (
-          filteredTasks.map(task => (
+          filteredTasks.map(task => {
+            const taskKey = task.id || task._id || `task-${Math.random()}`;
+            return (
             <div
-              key={task.id}
+              key={taskKey}
               className={`p-4 rounded-lg border-2 transition-all ${
                 task.status === 'Completed'
                   ? 'bg-gray-50 border-gray-200'
@@ -335,7 +337,8 @@ const TasksComponent: React.FC<TasksComponentProps> = ({ onTasksUpdate }) => {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

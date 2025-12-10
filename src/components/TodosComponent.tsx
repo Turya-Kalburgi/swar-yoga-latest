@@ -207,9 +207,11 @@ const TodosComponent: React.FC = () => {
             <p className="text-gray-600">No todos yet. Create one to get started!</p>
           </div>
         ) : (
-          filteredTodos.map(todo => (
+          filteredTodos.map(todo => {
+            const todoKey = todo.id || todo._id || `todo-${Math.random()}`;
+            return (
             <div
-              key={todo.id}
+              key={todoKey}
               className={`flex items-center gap-4 p-4 rounded-lg border transition ${
                 todo.status === 'Completed'
                   ? 'bg-gray-50 border-gray-200 opacity-75'
@@ -264,7 +266,8 @@ const TodosComponent: React.FC = () => {
                 </button>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

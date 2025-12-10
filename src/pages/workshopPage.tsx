@@ -453,8 +453,10 @@ const WorkshopPage = () => {
 
         {/* Workshops Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredWorkshops.map(workshop => (
-            <div key={workshop.id} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+          {filteredWorkshops.map(workshop => {
+            const workshopKey = workshop.id || workshop._id || `workshop-${Math.random()}`;
+            return (
+            <div key={workshopKey} className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
               {/* Workshop Image */}
               <div className="relative h-48 overflow-hidden">
                 <img 
@@ -566,7 +568,9 @@ const WorkshopPage = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })
+          }
         </div>
 
         {/* No Results */}
@@ -807,9 +811,11 @@ const WorkshopPage = () => {
                     );
                   }
 
-                  return latestWorkshops.map((workshop, index) => (
+                  return latestWorkshops.map((workshop, index) => {
+                    const workshopKey = workshop.id || `latest-workshop-${index}`;
+                    return (
                     <div
-                      key={workshop.id}
+                      key={workshopKey}
                       className="flex-shrink-0 w-80 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
                     >
                       {/* Image Section */}
@@ -914,7 +920,8 @@ const WorkshopPage = () => {
                         </div>
                       </div>
                     </div>
-                  ));
+                    );
+                  })
                 })()}
               </div>
             </div>

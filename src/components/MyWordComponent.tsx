@@ -197,9 +197,11 @@ const MyWordComponent: React.FC<MyWordComponentProps> = ({ onMyWordsUpdate }) =>
             <p className="text-gray-500">No commitments yet. Make your first commitment!</p>
           </div>
         ) : (
-          filteredWords.map(word => (
+          filteredWords.map(word => {
+            const wordKey = word.id || word._id || `word-${Math.random()}`;
+            return (
             <div
-              key={word.id}
+              key={wordKey}
               className={`p-4 rounded-lg border-2 transition-all ${
                 word.status === 'Completed'
                   ? 'bg-gray-50 border-gray-200'
@@ -296,7 +298,8 @@ const MyWordComponent: React.FC<MyWordComponentProps> = ({ onMyWordsUpdate }) =>
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

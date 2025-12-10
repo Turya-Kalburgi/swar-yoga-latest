@@ -250,9 +250,11 @@ const MilestonesComponent: React.FC = () => {
             <p className="text-gray-600">No milestones yet. Create one to get started!</p>
           </div>
         ) : (
-          filteredMilestones.map(milestone => (
+          filteredMilestones.map(milestone => {
+            const milestoneKey = milestone.id || milestone._id || `milestone-${Math.random()}`;
+            return (
             <div
-              key={milestone.id}
+              key={milestoneKey}
               className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition"
             >
               <div className="flex items-start justify-between mb-3">
@@ -305,7 +307,8 @@ const MilestonesComponent: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
