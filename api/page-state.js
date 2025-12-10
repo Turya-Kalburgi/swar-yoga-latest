@@ -12,8 +12,7 @@ module.exports = async (req, res) => {
 
   // Handle preflight CORS requests
   if (method === 'OPTIONS') {
-    res.status(200);
-    return res.json({ ok: true });
+    return res.status(200).json({ ok: true });
   }
 
   if (method === 'POST') {
@@ -21,8 +20,7 @@ module.exports = async (req, res) => {
     // We ignore the request body for now
     console.log('📝 Page state save request received at', new Date().toISOString());
 
-    res.status(200);
-    return res.json({
+    return res.status(200).json({
       ok: true,
       message: 'Page state saved successfully (stub backend).',
       timestamp: new Date().toISOString(),
@@ -31,8 +29,7 @@ module.exports = async (req, res) => {
 
   if (method === 'GET') {
     // Retrieve page state - currently returns null, later loads from MongoDB
-    res.status(200);
-    return res.json({
+    return res.status(200).json({
       ok: true,
       state: null,
       message: 'Page state retrieval is not implemented yet (stub).',
@@ -42,8 +39,7 @@ module.exports = async (req, res) => {
 
   // Method not allowed
   res.setHeader('Allow', ['GET', 'POST']);
-  res.status(405);
-  return res.json({
+  return res.status(405).json({
     ok: false,
     message: `Method ${method} not allowed on /api/page-state`,
   });

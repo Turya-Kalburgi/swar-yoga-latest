@@ -12,8 +12,7 @@ module.exports = async (req, res) => {
 
   // Handle preflight CORS requests
   if (method === 'OPTIONS') {
-    res.status(200);
-    return res.json({ ok: true });
+    return res.status(200).json({ ok: true });
   }
 
   if (method === 'POST') {
@@ -21,8 +20,7 @@ module.exports = async (req, res) => {
     // We don't parse the body yet - just acknowledge
     console.log('📩 New contact message received at', new Date().toISOString());
 
-    res.status(200);
-    return res.json({
+    return res.status(200).json({
       ok: true,
       message: 'Contact message received successfully (stub backend).',
       messageId: `msg_${Date.now()}`,
@@ -32,8 +30,7 @@ module.exports = async (req, res) => {
 
   if (method === 'GET') {
     // Optionally retrieve all contact messages (future feature)
-    res.status(200);
-    return res.json({
+    return res.status(200).json({
       ok: true,
       messages: [],
       message: 'Contact message retrieval is not implemented yet (stub).',
@@ -42,8 +39,7 @@ module.exports = async (req, res) => {
 
   // Method not allowed
   res.setHeader('Allow', ['GET', 'POST']);
-  res.status(405);
-  return res.json({
+  return res.status(405).json({
     ok: false,
     message: `Method ${method} not allowed on /api/contact/messages`,
   });
