@@ -99,7 +99,6 @@ const SadhakaPlannerPage = () => {
     try {
       setLoading(true);
       let userId = user?.id || (user as any)?._id || '';
-      
       // If userId not found in context, try to get it from localStorage
       if (!userId) {
         const userStr = localStorage.getItem('user');
@@ -113,15 +112,15 @@ const SadhakaPlannerPage = () => {
           }
         }
       }
-      
       if (!userId) {
         console.warn('❌ No userId found in context or localStorage');
         setLoading(false);
         return;
       }
-      
       console.log(`📥 Loading data for userId: ${userId}`);
 
+      // Debug: log before API calls
+      console.log('🔎 Calling all planner APIs...');
       const [
         visionsData,
         goalsData,
@@ -143,6 +142,16 @@ const SadhakaPlannerPage = () => {
         dailyPlanAPI.getByDate(userId, new Date().toISOString().split('T')[0]),
         healthTrackerAPI.getByDate(userId, new Date().toISOString().split('T')[0])
       ]);
+      // Debug: log API results
+      console.log('📊 visionsData:', visionsData);
+      console.log('📊 goalsData:', goalsData);
+      console.log('📊 milestonesData:', milestonesData);
+      console.log('📊 tasksData:', tasksData);
+      console.log('📊 myWordsData:', myWordsData);
+      console.log('📊 todosData:', todosData);
+      console.log('📊 remindersData:', remindersData);
+      console.log('📊 planData:', planData);
+      console.log('📊 healthData:', healthData);
 
       setVisions(visionsData || []);
       setGoals(goalsData || []);
@@ -154,17 +163,20 @@ const SadhakaPlannerPage = () => {
       setTodaysPlan(planData || null);
       setHealthData(healthData || null);
 
+      // Debug: log after state set
+      setTimeout(() => {
+        console.log('✅ State after set: visions', visions);
+        console.log('✅ State after set: goals', goals);
+      }, 1000);
+
       const tasksArray = Array.isArray(tasksData) ? tasksData : [];
       const myWordsArray = Array.isArray(myWordsData) ? myWordsData : [];
-      
       const overdueT = tasksArray.filter((t: Task) => isOverdue(t.dueDate) && t.status !== 'Completed');
       const overdueC = myWordsArray.filter((m: MyWord) => isOverdue(m.completionDeadline) && m.status !== 'Completed');
-
       if (overdueT.length > 0 || overdueC.length > 0) {
         setOverdueItems({ tasks: overdueT, commitments: overdueC });
         setShowOverdueAlert(true);
       }
-
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);

@@ -262,11 +262,13 @@ export const visionAPI = {
       // Store userId in localStorage for interceptor to pick it up
       localStorage.setItem('userId', userId);
       const response = await apiClient.get('/visions');
+      console.log(`🔍 Full API Response:`, response.data);
       const data = response.data.data || response.data || [];
-      console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} visions`);
+      console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} visions from parsed data:`, data);
       return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('❌ Error fetching visions:', error);
+      console.error('   Error details:', (error as any).response?.data || (error as any).message);
       return [];
     }
   },
