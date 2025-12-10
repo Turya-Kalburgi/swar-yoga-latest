@@ -41,16 +41,22 @@ apiClient.interceptors.request.use((config) => {
     if (!userId) {
       const userStr = localStorage.getItem('user');
       if (userStr) {
-        const userObj = JSON.parse(userStr);
-        userId = userObj.id || userObj._id;
+        try {
+          const userObj = JSON.parse(userStr);
+          userId = userObj.id || userObj._id;
+        } catch (e) {
+          // ignore parse error
+        }
       }
     }
     
+    // Merge with existing headers instead of replacing
     if (userId) {
+      // Always set X-User-ID header, even if it exists
       config.headers['X-User-ID'] = userId;
-      console.log(`📤 API Request with User ID: ${userId}`);
+      console.log(`📤 API Request [${config.method?.toUpperCase()}] ${config.url} with User ID: ${userId}`);
     } else {
-      console.warn('⚠️ No user ID found in localStorage for API request');
+      console.warn('⚠️ No user ID found in localStorage for API request to', config.url);
     }
   } catch (error) {
     console.error('❌ Error getting user ID:', error);
@@ -253,9 +259,9 @@ export const visionAPI = {
   getAll: async (userId: string): Promise<Vision[]> => {
     try {
       console.log(`📥 Fetching visions for user: ${userId}`);
-      const response = await apiClient.get('/visions', {
-        headers: { 'X-User-ID': userId }
-      });
+      // Store userId in localStorage for interceptor to pick it up
+      localStorage.setItem('userId', userId);
+      const response = await apiClient.get('/visions');
       const data = response.data.data || response.data || [];
       console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} visions`);
       return Array.isArray(data) ? data : [];
@@ -326,9 +332,8 @@ export const goalAPI = {
   getAll: async (userId: string): Promise<Goal[]> => {
     try {
       console.log(`📥 Fetching goals for user: ${userId}`);
-      const response = await apiClient.get('/goals', {
-        headers: { 'X-User-ID': userId }
-      });
+      localStorage.setItem('userId', userId);
+      const response = await apiClient.get('/goals');
       const data = response.data.data || response.data || [];
       console.log(`✅ Fetched ${Array.isArray(data) ? data.length : 0} goals`);
       return Array.isArray(data) ? data : [];
