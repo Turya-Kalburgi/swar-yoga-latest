@@ -55,6 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = (userData: User) => {
     localStorage.setItem('user', JSON.stringify(userData));
+    // Also set userId directly for API interceptor convenience
+    localStorage.setItem('userId', userData.id);
     setUser(userData);
     setIsAuthenticated(true);
     
@@ -71,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     const loggedOutUser = user?.email || 'Unknown';
     localStorage.removeItem('user');
+    localStorage.removeItem('userId');
     setUser(null);
     setIsAuthenticated(false);
     
