@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Target, CheckSquare, Milestone as MilestoneIcon, ListTodo, Heart, Bell,
   Calendar, TrendingUp, Plus, Edit2, Trash2, AlertCircle, CheckCircle,
-  Clock, AlertTriangle, Download, Share2, RefreshCw
+  Clock, AlertTriangle, Download, Share2, RefreshCw, Zap
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +30,7 @@ const SadhakaPlannerPage = () => {
   // State management
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
+  const [serverStatus, setServerStatus] = useState<'online' | 'offline'>('offline');
 
   // Data states
   const [visions, setVisions] = useState<Vision[]>([]);
@@ -66,6 +67,33 @@ const SadhakaPlannerPage = () => {
       return () => clearInterval(interval);
     }
   }, [user?.id, (user as any)?._id]);
+
+  // Health check for server and database
+  useEffect(() => {
+    const checkServerHealth = async () => {
+      try {
+        const envUrl = (import.meta as any).env?.VITE_API_URL;
+        const baseUrl = envUrl ? envUrl.replace('/api', '') : 'http://localhost:4000';
+        const response = await fetch(`${baseUrl}/health`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+          setServerStatus('online');
+        } else {
+          setServerStatus('offline');
+        }
+      } catch (error) {
+        setServerStatus('offline');
+      }
+    };
+
+    // Check health immediately and then every 30 seconds
+    checkServerHealth();
+    const healthInterval = setInterval(checkServerHealth, 30000);
+    return () => clearInterval(healthInterval);
+  }, []);
 
   const loadAllData = async () => {
     try {
@@ -165,7 +193,15 @@ const SadhakaPlannerPage = () => {
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">🧘 Life Planner</h1>
               <p className="text-sm sm:text-base text-gray-600">Achieve your transformation journey with mindful planning</p>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
+            <div className="flex gap-2 w-full sm:w-auto items-center">
+              {/* Server Status Indicator */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border-2" title={`Server Status: ${serverStatus === 'online' ? 'All systems operational' : 'Server offline'}`}>
+                <div className={`h-3 w-3 rounded-full ${serverStatus === 'online' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                <span className="text-xs font-semibold text-gray-700 hidden sm:inline">
+                  {serverStatus === 'online' ? 'Live' : 'Offline'}
+                </span>
+              </div>
+              
               <button
                 onClick={loadAllData}
                 className="flex items-center justify-center gap-2 bg-green-500 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-600 flex-1 sm:flex-none text-sm sm:text-base"

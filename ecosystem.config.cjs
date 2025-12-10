@@ -13,8 +13,8 @@ module.exports = {
       watch: false,
       max_memory_restart: '500M',
       
-      // Periodic restart for memory cleanup (every 1 hour)
-      cron_restart: '0 * * * *',  // Every hour - helps prevent memory leaks
+      // Periodic restart for memory cleanup (every 10 minutes)
+      cron_restart: '*/10 * * * *',  // Every 10 minutes - helps prevent memory leaks
       
       env: {
         NODE_ENV: 'production',
@@ -55,8 +55,8 @@ module.exports = {
       watch: ['vite.config.ts', 'package.json'],
       max_memory_restart: '500M',
       
-      // Periodic restart for memory cleanup (every 30 minutes)
-      cron_restart: '*/30 * * * *',  // Every 30 minutes
+      // Periodic restart for memory cleanup (every 10 minutes)
+      cron_restart: '*/10 * * * *',  // Every 10 minutes
       
       env: {
         NODE_ENV: 'development'

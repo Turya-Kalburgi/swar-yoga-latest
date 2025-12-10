@@ -143,6 +143,15 @@ app.get('/', (req: Request, res: Response): void => {
   res.json({ message: 'Swar Yoga Backend API - MongoDB Atlas Edition', timestamp: new Date().toISOString() });
 });
 
+// ===== HEALTH CHECK ENDPOINT =====
+app.get('/health', (req: Request, res: Response): void => {
+  res.json({ 
+    status: 'online',
+    message: 'Server and Database are live',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // ⭐ IMPORTANT: Workshop Routes MUST come FIRST before generic routes
 app.use('/api/workshops', workshopRoutes);
 
