@@ -244,9 +244,11 @@ const GoalsComponent: React.FC<GoalsComponentProps> = ({ onGoalsUpdate }) => {
             <p className="text-gray-500">No goals yet. Create your first goal!</p>
           </div>
         ) : (
-          filteredGoals.map(goal => (
+          filteredGoals.map(goal => {
+            const goalKey = goal.id || goal._id || `goal-${Math.random()}`;
+            return (
             <div
-              key={goal.id}
+              key={goalKey}
               className={`p-4 rounded-lg border-2 transition-all ${
                 goal.status === 'Completed'
                   ? 'bg-gray-50 border-gray-200'
@@ -350,7 +352,8 @@ const GoalsComponent: React.FC<GoalsComponentProps> = ({ onGoalsUpdate }) => {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
