@@ -47,9 +47,8 @@ export default async (req, res) => {
 
   // Call Express app
   try {
-    await app(req, res);
-    const duration = Date.now() - startTime;
-    console.log(`✅ Response sent in ${duration}ms | Status: ${res.statusCode}`);
+    // Express app is a middleware function that handles req/res
+    app(req, res);
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error(`❌ Error after ${duration}ms:`, error);
